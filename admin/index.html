@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self'; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; font-src 'self'; base-uri 'self'; form-action 'self'">
+  <title>Управление новостями — Федерация фехтования Томской области</title>
+  <link rel="icon" type="image/png" href="../images/logo/logoffto.png">
+  <link rel="stylesheet" href="admin.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
+  <script defer src="../js/supabase-config.js"></script>
+  <script defer src="admin.js"></script>
+</head>
+<body>
+  <header class="admin-header">
+    <a class="brand" href="../" aria-label="Перейти на основной сайт">
+      <img src="../images/logo/logoffto.png" alt="">
+      <span>Федерация фехтования<small>Управление новостями</small></span>
+    </a>
+    <a class="site-link" href="../">Открыть сайт</a>
+  </header>
+
+  <main class="admin-main">
+    <div id="message" class="message" role="status" aria-live="polite" hidden></div>
+
+    <section id="config-panel" class="panel narrow-panel" hidden>
+      <p class="eyebrow">Требуется настройка</p>
+      <h1>Подключите Supabase</h1>
+      <p>Админка создана, но адрес проекта и публичный ключ ещё не указаны.</p>
+      <p>Откройте файл <code>js/supabase-config.js</code> и следуйте инструкции <code>ADMIN_SETUP.md</code>.</p>
+    </section>
+
+    <section id="login-panel" class="panel narrow-panel" hidden>
+      <p class="eyebrow">Закрытый раздел</p>
+      <h1>Вход в админку</h1>
+      <p class="muted">Введите email и пароль администратора.</p>
+      <form id="login-form" class="form-stack">
+        <label>
+          Email
+          <input id="login-email" type="email" autocomplete="username" required>
+        </label>
+        <label>
+          Пароль
+          <input id="login-password" type="password" autocomplete="current-password" required>
+        </label>
+        <button id="login-button" class="button button-primary" type="submit">Войти</button>
+      </form>
+    </section>
+
+    <section id="dashboard" hidden>
+      <div class="dashboard-heading">
+        <div>
+          <p class="eyebrow">Административная панель</p>
+          <h1>Новости</h1>
+          <p id="account-label" class="muted"></p>
+        </div>
+        <div class="heading-actions">
+          <button id="add-button" class="button button-primary" type="button">+ Добавить новость</button>
+          <button id="logout-button" class="button button-secondary" type="button">Выйти</button>
+        </div>
+      </div>
+
+      <section id="editor-panel" class="panel editor-panel" hidden>
+        <div class="editor-heading">
+          <div>
+            <p class="eyebrow">Редактор</p>
+            <h2 id="editor-title">Новая новость</h2>
+          </div>
+          <button id="close-editor-button" class="icon-button" type="button" aria-label="Закрыть редактор">×</button>
+        </div>
+
+        <div class="editor-layout">
+          <form id="news-form" class="form-stack">
+            <label>
+              Заголовок
+              <input id="news-title" type="text" maxlength="200" required>
+            </label>
+            <label>
+              Дата
+              <input id="news-date" type="date" required>
+            </label>
+            <label>
+              Краткое описание
+              <textarea id="news-summary" maxlength="700" rows="4" required></textarea>
+              <small>Показывается в карточке новости на основном сайте.</small>
+            </label>
+            <label>
+              Полный текст
+              <textarea id="news-content" maxlength="20000" rows="8" required></textarea>
+            </label>
+            <label>
+              Фотография
+              <input id="news-image" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+              <small id="image-help">JPG, JPEG, PNG или WEBP. До 10 МБ; большое изображение будет уменьшено.</small>
+            </label>
+            <label class="checkbox-label">
+              <input id="news-published" type="checkbox">
+              <span><b>Опубликовано</b><small>Если выключено, новость сохранится как черновик и не появится на сайте.</small></span>
+            </label>
+            <div class="form-actions">
+              <button id="save-button" class="button button-primary" type="submit">Сохранить</button>
+              <button id="cancel-button" class="button button-secondary" type="button">Отмена</button>
+            </div>
+          </form>
+
+          <aside class="preview-wrap">
+            <p class="preview-label">Предпросмотр</p>
+            <article class="preview-card">
+              <div id="preview-image-wrap" class="preview-image-wrap">
+                <img id="preview-image" alt="Предпросмотр фотографии" hidden>
+                <span id="preview-image-placeholder">Фотография</span>
+              </div>
+              <div class="preview-content">
+                <p id="preview-date" class="preview-date">Дата новости</p>
+                <h3 id="preview-title">Заголовок новости</h3>
+                <p id="preview-summary">Краткое описание появится здесь.</p>
+                <p id="preview-full-text" class="preview-full-text">Полный текст появится здесь.</p>
+                <span id="preview-status" class="status status-draft">Черновик</span>
+              </div>
+            </article>
+          </aside>
+        </div>
+      </section>
+
+      <section class="panel list-panel">
+        <div class="list-heading">
+          <h2>Все новости</h2>
+          <button id="refresh-button" class="button button-secondary button-small" type="button">Обновить</button>
+        </div>
+        <div id="news-list" class="news-list" aria-live="polite"></div>
+      </section>
+    </section>
+  </main>
+
+  <footer class="admin-footer">Федерация фехтования Томской области</footer>
+</body>
+</html>

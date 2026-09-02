@@ -6,18 +6,23 @@
   <meta name="robots" content="noindex,nofollow">
   <meta name="referrer" content="no-referrer">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self'; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; font-src 'self'; base-uri 'self'; form-action 'self'">
-  <title>Управление новостями — Федерация фехтования Томской области</title>
+  <title>Управление сайтом — Федерация фехтования Томской области</title>
   <link rel="icon" type="image/png" href="../images/logo/logoffto.png">
   <link rel="stylesheet" href="admin.css">
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
   <script defer src="../js/supabase-config.js"></script>
+  <script defer src="shared.js"></script>
+  <script defer src="calendar.js"></script>
+  <script defer src="results.js"></script>
+  <script defer src="gallery.js"></script>
+  <script defer src="home.js"></script>
   <script defer src="admin.js"></script>
 </head>
 <body>
   <header class="admin-header">
     <a class="brand" href="../" aria-label="Перейти на основной сайт">
       <img src="../images/logo/logoffto.png" alt="">
-      <span>Федерация фехтования<small>Управление новостями</small></span>
+      <span>Федерация фехтования<small>Панель управления</small></span>
     </a>
     <a class="site-link" href="../">Открыть сайт</a>
   </header>
@@ -53,84 +58,327 @@
       <div class="dashboard-heading">
         <div>
           <p class="eyebrow">Административная панель</p>
-          <h1>Новости</h1>
+          <h1>Управление сайтом</h1>
           <p id="account-label" class="muted"></p>
         </div>
-        <div class="heading-actions">
-          <button id="add-button" class="button button-primary" type="button">+ Добавить новость</button>
-          <button id="logout-button" class="button button-secondary" type="button">Выйти</button>
-        </div>
+        <button id="logout-button" class="button button-secondary" type="button">Выйти</button>
       </div>
 
-      <section id="editor-panel" class="panel editor-panel" hidden>
-        <div class="editor-heading">
-          <div>
-            <p class="eyebrow">Редактор</p>
-            <h2 id="editor-title">Новая новость</h2>
-          </div>
-          <button id="close-editor-button" class="icon-button" type="button" aria-label="Закрыть редактор">×</button>
-        </div>
+      <div class="admin-shell">
+        <nav class="admin-nav" aria-label="Разделы админ-панели">
+          <a class="admin-nav-link" href="#news" data-section-link="news">Новости</a>
+          <a class="admin-nav-link" href="#calendar" data-section-link="calendar">Календарь</a>
+          <a class="admin-nav-link" href="#results" data-section-link="results">Результаты</a>
+          <a class="admin-nav-link" href="#gallery" data-section-link="gallery">Галерея</a>
+          <a class="admin-nav-link" href="#home" data-section-link="home">Главная</a>
+        </nav>
 
-        <div class="editor-layout">
-          <form id="news-form" class="form-stack">
-            <label>
-              Заголовок
-              <input id="news-title" type="text" maxlength="200" required>
-            </label>
-            <label>
-              Дата
-              <input id="news-date" type="date" required>
-            </label>
-            <label>
-              Краткое описание
-              <textarea id="news-summary" maxlength="700" rows="4" required></textarea>
-              <small>Показывается в карточке новости на основном сайте.</small>
-            </label>
-            <label>
-              Полный текст
-              <textarea id="news-content" maxlength="20000" rows="8" required></textarea>
-            </label>
-            <label>
-              Фотография
-              <input id="news-image" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
-              <small id="image-help">JPG, JPEG, PNG или WEBP. До 10 МБ; большое изображение будет уменьшено.</small>
-            </label>
-            <label class="checkbox-label">
-              <input id="news-published" type="checkbox">
-              <span><b>Опубликовано</b><small>Если выключено, новость сохранится как черновик и не появится на сайте.</small></span>
-            </label>
-            <div class="form-actions">
-              <button id="save-button" class="button button-primary" type="submit">Сохранить</button>
-              <button id="cancel-button" class="button button-secondary" type="button">Отмена</button>
+        <div class="admin-content">
+          <section class="admin-section" data-admin-section="news" aria-labelledby="news-section-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Материалы сайта</p>
+                <h2 id="news-section-title">Новости</h2>
+              </div>
+              <button id="add-button" class="button button-primary" type="button">+ Добавить новость</button>
             </div>
-          </form>
 
-          <aside class="preview-wrap">
-            <p class="preview-label">Предпросмотр</p>
-            <article class="preview-card">
-              <div id="preview-image-wrap" class="preview-image-wrap">
-                <img id="preview-image" alt="Предпросмотр фотографии" hidden>
-                <span id="preview-image-placeholder">Фотография</span>
+            <section id="editor-panel" class="panel editor-panel" hidden>
+              <div class="editor-heading">
+                <div>
+                  <p class="eyebrow">Редактор</p>
+                  <h2 id="editor-title">Новая новость</h2>
+                </div>
+                <button id="close-editor-button" class="icon-button" type="button" aria-label="Закрыть редактор">×</button>
               </div>
-              <div class="preview-content">
-                <p id="preview-date" class="preview-date">Дата новости</p>
-                <h3 id="preview-title">Заголовок новости</h3>
-                <p id="preview-summary">Краткое описание появится здесь.</p>
-                <p id="preview-full-text" class="preview-full-text">Полный текст появится здесь.</p>
-                <span id="preview-status" class="status status-draft">Черновик</span>
-              </div>
-            </article>
-          </aside>
-        </div>
-      </section>
 
-      <section class="panel list-panel">
-        <div class="list-heading">
-          <h2>Все новости</h2>
-          <button id="refresh-button" class="button button-secondary button-small" type="button">Обновить</button>
+              <div class="editor-layout">
+                <form id="news-form" class="form-stack">
+                  <label>
+                    Заголовок
+                    <input id="news-title" type="text" maxlength="200" required>
+                  </label>
+                  <label>
+                    Дата
+                    <input id="news-date" type="date" required>
+                  </label>
+                  <label>
+                    Краткое описание
+                    <textarea id="news-summary" maxlength="700" rows="4" required></textarea>
+                    <small>Показывается в карточке новости на основном сайте.</small>
+                  </label>
+                  <label>
+                    Полный текст
+                    <textarea id="news-content" maxlength="20000" rows="8" required></textarea>
+                  </label>
+                  <label>
+                    Фотография
+                    <input id="news-image" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+                    <small id="image-help">JPG, JPEG, PNG или WEBP. До 10 МБ; большое изображение будет уменьшено.</small>
+                  </label>
+                  <label class="checkbox-label">
+                    <input id="news-published" type="checkbox">
+                    <span><b>Опубликовано</b><small>Если выключено, новость сохранится как черновик и не появится на сайте.</small></span>
+                  </label>
+                  <div class="form-actions">
+                    <button id="save-button" class="button button-primary" type="submit">Сохранить</button>
+                    <button id="cancel-button" class="button button-secondary" type="button">Отмена</button>
+                  </div>
+                </form>
+
+                <aside class="preview-wrap">
+                  <p class="preview-label">Предпросмотр</p>
+                  <article class="preview-card">
+                    <div id="preview-image-wrap" class="preview-image-wrap">
+                      <img id="preview-image" alt="Предпросмотр фотографии" hidden>
+                      <span id="preview-image-placeholder">Фотография</span>
+                    </div>
+                    <div class="preview-content">
+                      <p id="preview-date" class="preview-date">Дата новости</p>
+                      <h3 id="preview-title">Заголовок новости</h3>
+                      <p id="preview-summary">Краткое описание появится здесь.</p>
+                      <p id="preview-full-text" class="preview-full-text">Полный текст появится здесь.</p>
+                      <span id="preview-status" class="status status-draft">Черновик</span>
+                    </div>
+                  </article>
+                </aside>
+              </div>
+            </section>
+
+            <section class="panel list-panel">
+              <div class="list-heading">
+                <h2>Все новости</h2>
+                <button id="refresh-button" class="button button-secondary button-small" type="button">Обновить</button>
+              </div>
+              <div id="news-list" class="news-list" aria-live="polite"></div>
+            </section>
+          </section>
+
+          <section class="admin-section" data-admin-section="calendar" aria-labelledby="calendar-section-title" hidden>
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Соревнования</p>
+                <h2 id="calendar-section-title">Календарь</h2>
+              </div>
+              <button id="calendar-add-button" class="button button-primary" type="button">+ Добавить событие</button>
+            </div>
+
+            <section id="calendar-editor" class="panel editor-panel" hidden>
+              <div class="editor-heading">
+                <div><p class="eyebrow">Редактор</p><h2 id="calendar-editor-title">Новое событие</h2></div>
+                <button id="calendar-close-button" class="icon-button" type="button" aria-label="Закрыть редактор">×</button>
+              </div>
+              <div class="editor-layout">
+                <form id="calendar-form" class="form-stack">
+                  <label>Название<input id="calendar-title" type="text" maxlength="200" required></label>
+                  <div class="form-grid two-columns">
+                    <label>Дата начала<input id="calendar-start-date" type="date" required></label>
+                    <label>Дата окончания<input id="calendar-end-date" type="date"></label>
+                  </div>
+                  <label>Место проведения<input id="calendar-location" type="text" maxlength="200"></label>
+                  <label>Описание<textarea id="calendar-description" maxlength="2000" rows="5"></textarea></label>
+                  <div class="form-grid two-columns">
+                    <label>Категория<input id="calendar-category" type="text" maxlength="100"></label>
+                    <label>Короткая метка<input id="calendar-short-label" type="text" maxlength="12"></label>
+                  </div>
+                  <label class="checkbox-label">
+                    <input id="calendar-published" type="checkbox">
+                    <span><b>Опубликовано</b><small>Выключите, чтобы сохранить событие как черновик.</small></span>
+                  </label>
+                  <div class="form-actions">
+                    <button id="calendar-save-button" class="button button-primary" type="submit">Сохранить</button>
+                    <button id="calendar-cancel-button" class="button button-secondary" type="button">Отмена</button>
+                  </div>
+                </form>
+                <aside class="preview-wrap">
+                  <p class="preview-label">Предпросмотр</p>
+                  <article class="preview-card compact-preview">
+                    <div class="preview-content">
+                      <p id="calendar-preview-date" class="preview-date">Дата события</p>
+                      <h3 id="calendar-preview-title">Название события</h3>
+                      <p id="calendar-preview-location" class="muted">Место проведения</p>
+                      <p id="calendar-preview-description">Описание события появится здесь.</p>
+                      <div class="preview-meta">
+                        <span id="calendar-preview-category" class="tag" hidden></span>
+                        <span id="calendar-preview-status" class="status status-draft">Черновик</span>
+                      </div>
+                    </div>
+                  </article>
+                </aside>
+              </div>
+            </section>
+
+            <section class="panel list-panel">
+              <div class="list-heading">
+                <h2>Все события</h2>
+                <div class="heading-actions">
+                  <label class="compact-control">Сортировка
+                    <select id="calendar-sort"><option value="asc">Сначала ближайшие</option><option value="desc">Сначала поздние</option></select>
+                  </label>
+                  <button id="calendar-refresh-button" class="button button-secondary button-small" type="button">Обновить</button>
+                </div>
+              </div>
+              <div id="calendar-list" class="record-list" aria-live="polite"></div>
+            </section>
+          </section>
+
+          <section class="admin-section" data-admin-section="results" aria-labelledby="results-section-title" hidden>
+            <div class="section-heading">
+              <div><p class="eyebrow">Итоги соревнований</p><h2 id="results-section-title">Результаты</h2></div>
+              <button id="results-add-button" class="button button-primary" type="button">+ Добавить результат</button>
+            </div>
+
+            <section id="results-editor" class="panel editor-panel" hidden>
+              <div class="editor-heading">
+                <div><p class="eyebrow">Редактор</p><h2 id="results-editor-title">Новый результат</h2></div>
+                <button id="results-close-button" class="icon-button" type="button" aria-label="Закрыть редактор">×</button>
+              </div>
+              <div class="editor-layout">
+                <form id="results-form" class="form-stack">
+                  <label>Дата соревнования<input id="results-date" type="date" required></label>
+                  <label>Подпись даты<input id="results-date-label" type="text" maxlength="80" placeholder="Необязательно"></label>
+                  <label>Название<input id="results-title" type="text" maxlength="200" required></label>
+                  <label>Результат<textarea id="results-text" maxlength="5000" rows="8" required></textarea></label>
+                  <label>Категория<input id="results-category" type="text" maxlength="200"></label>
+                  <label class="checkbox-label">
+                    <input id="results-published" type="checkbox">
+                    <span><b>Опубликовано</b><small>Выключите, чтобы сохранить результат как черновик.</small></span>
+                  </label>
+                  <div class="form-actions">
+                    <button id="results-save-button" class="button button-primary" type="submit">Сохранить</button>
+                    <button id="results-cancel-button" class="button button-secondary" type="button">Отмена</button>
+                  </div>
+                </form>
+                <aside class="preview-wrap">
+                  <p class="preview-label">Предпросмотр</p>
+                  <article class="preview-card compact-preview">
+                    <div class="preview-content">
+                      <p id="results-preview-date" class="preview-date">Дата соревнования</p>
+                      <h3 id="results-preview-title">Название соревнования</h3>
+                      <p id="results-preview-text">Результат появится здесь.</p>
+                      <div class="preview-meta">
+                        <span id="results-preview-category" class="tag" hidden></span>
+                        <span id="results-preview-status" class="status status-draft">Черновик</span>
+                      </div>
+                    </div>
+                  </article>
+                </aside>
+              </div>
+            </section>
+
+            <section class="panel list-panel">
+              <div class="list-heading">
+                <h2>Все результаты</h2>
+                <div class="heading-actions">
+                  <label class="compact-control">Сортировка
+                    <select id="results-sort"><option value="desc">Сначала новые</option><option value="asc">Сначала старые</option></select>
+                  </label>
+                  <button id="results-refresh-button" class="button button-secondary button-small" type="button">Обновить</button>
+                </div>
+              </div>
+              <div id="results-list" class="record-list" aria-live="polite"></div>
+            </section>
+          </section>
+
+          <section class="admin-section" data-admin-section="gallery" aria-labelledby="gallery-section-title" hidden>
+            <div class="section-heading">
+              <div><p class="eyebrow">Фотографии</p><h2 id="gallery-section-title">Галерея</h2></div>
+              <button id="gallery-add-album-button" class="button button-primary" type="button">+ Создать альбом</button>
+            </div>
+
+            <section id="gallery-album-editor" class="panel editor-panel" hidden>
+              <div class="editor-heading">
+                <div><p class="eyebrow">Редактор альбома</p><h2 id="gallery-album-editor-title">Новый альбом</h2></div>
+                <button id="gallery-album-close-button" class="icon-button" type="button" aria-label="Закрыть редактор">×</button>
+              </div>
+              <form id="gallery-album-form" class="form-stack form-compact-width">
+                <label>Название<input id="gallery-album-title" type="text" maxlength="200" required></label>
+                <label>Описание<textarea id="gallery-album-description" maxlength="2000" rows="5"></textarea></label>
+                <div class="form-grid two-columns">
+                  <label>Дата события<input id="gallery-album-date" type="date"></label>
+                  <label>Порядок<input id="gallery-album-order" type="number" min="0" step="1" value="0" required></label>
+                </div>
+                <label class="checkbox-label"><input id="gallery-album-published" type="checkbox"><span><b>Опубликовано</b><small>Неопубликованный альбом не запрашивается публичным сайтом.</small></span></label>
+                <div class="form-actions">
+                  <button id="gallery-album-save-button" class="button button-primary" type="submit">Сохранить</button>
+                  <button id="gallery-album-cancel-button" class="button button-secondary" type="button">Отмена</button>
+                </div>
+              </form>
+            </section>
+
+            <section class="panel list-panel">
+              <div class="list-heading"><h2>Альбомы</h2><button id="gallery-refresh-button" class="button button-secondary button-small" type="button">Обновить</button></div>
+              <div id="gallery-album-list" class="record-list" aria-live="polite"></div>
+            </section>
+
+            <section id="gallery-photos-panel" class="panel list-panel gallery-photos-panel" hidden>
+              <div class="list-heading">
+                <div><p class="eyebrow">Открытый альбом</p><h2 id="gallery-selected-title">Фотографии</h2></div>
+                <button id="gallery-close-album-button" class="button button-secondary button-small" type="button">Закрыть альбом</button>
+              </div>
+              <form id="gallery-upload-form" class="upload-panel">
+                <label>Добавить фотографии
+                  <input id="gallery-files" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple required>
+                </label>
+                <small>Можно выбрать несколько файлов. Каждый исходный файл — до 10 МБ.</small>
+                <button id="gallery-upload-button" class="button button-primary" type="submit">Загрузить</button>
+              </form>
+              <div id="gallery-photo-list" class="photo-grid" aria-live="polite"></div>
+            </section>
+
+            <section id="gallery-photo-editor" class="panel editor-panel" hidden>
+              <div class="editor-heading">
+                <div><p class="eyebrow">Описание фотографии</p><h2>Изменить фотографию</h2></div>
+                <button id="gallery-photo-close-button" class="icon-button" type="button" aria-label="Закрыть редактор">×</button>
+              </div>
+              <form id="gallery-photo-form" class="form-stack form-compact-width">
+                <label>Подпись<textarea id="gallery-photo-caption" maxlength="500" rows="4"></textarea></label>
+                <label>Описание для доступности<textarea id="gallery-photo-alt" maxlength="300" rows="3"></textarea></label>
+                <label>Порядок<input id="gallery-photo-order" type="number" min="0" step="1" required></label>
+                <div class="form-actions">
+                  <button id="gallery-photo-save-button" class="button button-primary" type="submit">Сохранить</button>
+                  <button id="gallery-photo-cancel-button" class="button button-secondary" type="button">Отмена</button>
+                </div>
+              </form>
+            </section>
+          </section>
+
+          <section class="admin-section" data-admin-section="home" aria-labelledby="home-section-title" hidden>
+            <div class="section-heading"><div><p class="eyebrow">Основной контент</p><h2 id="home-section-title">Главная</h2></div></div>
+            <section class="panel editor-panel home-editor-panel">
+              <div class="editor-layout">
+                <form id="home-form" class="form-stack">
+                  <p class="form-section-title">Главный экран</p>
+                  <label>Надзаголовок<input id="home-hero-kicker" type="text" maxlength="120"></label>
+                  <label>Заголовок<input id="home-hero-title" type="text" maxlength="200"></label>
+                  <label>Подзаголовок<textarea id="home-hero-subtitle" maxlength="700" rows="5"></textarea></label>
+                  <label>Главное изображение<input id="home-hero-image" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"><small>Оставьте поле пустым, чтобы сохранить текущее изображение. Исходный файл — до 10 МБ.</small></label>
+                  <p class="form-section-title">О федерации</p>
+                  <label>Заголовок раздела<input id="home-about-title" type="text" maxlength="200"></label>
+                  <label>Текст раздела<textarea id="home-about-text" maxlength="5000" rows="9"></textarea></label>
+                  <div class="form-actions">
+                    <button id="home-save-button" class="button button-primary" type="submit">Сохранить</button>
+                    <button id="home-cancel-button" class="button button-secondary" type="button">Отмена</button>
+                  </div>
+                </form>
+                <aside class="preview-wrap">
+                  <p class="preview-label">Предпросмотр hero-блока</p>
+                  <article class="hero-preview">
+                    <img id="home-preview-image" alt="" hidden>
+                    <div id="home-preview-image-placeholder" class="hero-preview-placeholder">Главное изображение</div>
+                    <div class="hero-preview-overlay"></div>
+                    <div class="hero-preview-content">
+                      <p id="home-preview-kicker">Надзаголовок</p>
+                      <h3 id="home-preview-title">Заголовок главного экрана</h3>
+                      <span id="home-preview-subtitle">Подзаголовок появится здесь.</span>
+                    </div>
+                  </article>
+                </aside>
+              </div>
+            </section>
+          </section>
         </div>
-        <div id="news-list" class="news-list" aria-live="polite"></div>
-      </section>
+      </div>
     </section>
   </main>
 

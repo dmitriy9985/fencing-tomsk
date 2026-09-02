@@ -6,6 +6,7 @@
   const MAX_IMAGE_SIDE = 1920;
   const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
   const STORAGE_BUCKET = "news-images";
+  const ADMIN_SECTIONS = new Set(["news", "calendar", "results", "gallery", "home"]);
 
   const elements = {
     message: document.getElementById("message"),
@@ -17,6 +18,8 @@
     loginButton: document.getElementById("login-button"),
     dashboard: document.getElementById("dashboard"),
     accountLabel: document.getElementById("account-label"),
+    sectionLinks: document.querySelectorAll("[data-section-link]"),
+    adminSections: document.querySelectorAll("[data-admin-section]"),
     addButton: document.getElementById("add-button"),
     logoutButton: document.getElementById("logout-button"),
     refreshButton: document.getElementById("refresh-button"),
@@ -49,7 +52,9 @@
   let editingItem = null;
   let previewObjectUrl = "";
   let busy = false;
+  let activeSection = "";
 
+  window.SiteAdmin.registerSection("news", { discardChanges: () => closeEditor(true) });
   bindEvents();
   start();
 
@@ -91,15 +96,21 @@
     elements.logoutButton.addEventListener("click", handleLogout);
     elements.addButton.addEventListener("click", openCreateForm);
     elements.refreshButton.addEventListener("click", loadNews);
-    elements.closeEditorButton.addEventListener("click", closeEditor);
-    elements.cancelButton.addEventListener("click", closeEditor);
+    elements.closeEditorButton.addEventListener("click", () => closeEditor(false));
+    elements.cancelButton.addEventListener("click", () => closeEditor(false));
     elements.newsForm.addEventListener("submit", saveNews);
 
     [elements.title, elements.date, elements.summary, elements.content, elements.published]
-      .forEach((field) => field.addEventListener("input", updatePreview));
+      .forEach((field) => field.addEventListener("input", () => {
+        if (!elements.editorPanel.hidden) {
+          window.SiteAdmin.setDirty("news", true);
+        }
+        updatePreview();
+      }));
 
     elements.image.addEventListener("change", handlePreviewImage);
     elements.previewImage.addEventListener("error", () => setPreviewImage(""));
+    window.addEventListener("hashchange", updateSectionFromHash);
   }
 
   async function handleLogin(event) {
@@ -148,13 +159,19 @@
     }
 
     currentUser = user;
+    window.SiteAdmin.setSession(client, user);
     elements.accountLabel.textContent = user.email ? `Вы вошли как ${user.email}` : "Выполнен вход администратора";
     showOnly("dashboard");
+    updateSectionFromHash();
     await loadNews();
   }
 
   async function handleLogout() {
     if (!client || busy) {
+      return;
+    }
+
+    if (activeSection && !window.SiteAdmin.confirmDiscard(activeSection)) {
       return;
     }
 
@@ -164,7 +181,9 @@
     } finally {
       currentUser = null;
       newsItems = [];
-      closeEditor();
+      closeEditor(true);
+      window.SiteAdmin.clearSession();
+      activeSection = "";
       showOnly("login");
       setBusy(false, elements.logoutButton, "Выйти");
       showMessage("Вы вышли из админки.", "success");
@@ -271,6 +290,9 @@
   }
 
   function openCreateForm() {
+    if (!elements.editorPanel.hidden && !window.SiteAdmin.confirmDiscard("news")) {
+      return;
+    }
     editingItem = null;
     elements.newsForm.reset();
     elements.date.value = todayAsInputValue();
@@ -279,12 +301,16 @@
     clearPreviewObjectUrl();
     setPreviewImage("");
     elements.editorPanel.hidden = false;
+    window.SiteAdmin.setDirty("news", false);
     updatePreview();
     elements.title.focus({ preventScroll: true });
     elements.editorPanel.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function openEditForm(id) {
+    if (!elements.editorPanel.hidden && !window.SiteAdmin.confirmDiscard("news")) {
+      return;
+    }
     const item = newsItems.find((candidate) => String(candidate.id) === String(id));
     if (!item) {
       showMessage("Новость не найдена. Обновите список.", "error");
@@ -303,16 +329,21 @@
     clearPreviewObjectUrl();
     setPreviewImage(resolveAdminImageUrl(item.image_url));
     elements.editorPanel.hidden = false;
+    window.SiteAdmin.setDirty("news", false);
     updatePreview();
     elements.editorPanel.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  function closeEditor() {
+  function closeEditor(skipConfirmation) {
+    if (!skipConfirmation && !window.SiteAdmin.confirmDiscard("news")) {
+      return;
+    }
     editingItem = null;
     elements.editorPanel.hidden = true;
     elements.newsForm.reset();
     clearPreviewObjectUrl();
     setPreviewImage("");
+    window.SiteAdmin.setDirty("news", false);
   }
 
   function updatePreview() {
@@ -345,6 +376,7 @@
 
     previewObjectUrl = URL.createObjectURL(file);
     setPreviewImage(previewObjectUrl);
+    window.SiteAdmin.setDirty("news", true);
   }
 
   function setPreviewImage(source) {
@@ -452,7 +484,8 @@
       }
 
       const previousImagePath = editingItem ? editingItem.image_path : null;
-      closeEditor();
+      window.SiteAdmin.setDirty("news", false);
+      closeEditor(true);
       await loadNews();
 
       if (uploadedPath && previousImagePath && previousImagePath !== uploadedPath) {
@@ -494,6 +527,7 @@
     }
 
     busy = true;
+    window.SiteAdmin.setSectionBusy("news", true);
     setListButtonsDisabled(true);
     hideMessage();
 
@@ -512,7 +546,7 @@
       }
 
       if (editingItem && String(editingItem.id) === String(item.id)) {
-        closeEditor();
+        closeEditor(true);
       }
 
       await loadNews();
@@ -526,6 +560,7 @@
       showMessage(readableError(error, "Не удалось удалить новость."), "error");
     } finally {
       busy = false;
+      window.SiteAdmin.setSectionBusy("news", false);
       setListButtonsDisabled(false);
     }
   }
@@ -682,6 +717,49 @@
     );
   }
 
+  function updateSectionFromHash() {
+    const requestedSection = window.location.hash.slice(1).toLowerCase();
+    const nextSection = ADMIN_SECTIONS.has(requestedSection) ? requestedSection : "news";
+    const expectedHash = `#${nextSection}`;
+
+    if (window.location.hash !== expectedHash) {
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}${window.location.search}${expectedHash}`
+      );
+    }
+
+    if (activeSection && activeSection !== nextSection && !window.SiteAdmin.confirmDiscard(activeSection)) {
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}${window.location.search}#${activeSection}`
+      );
+      return;
+    }
+
+    if (activeSection && activeSection !== nextSection) {
+      window.SiteAdmin.discardSection(activeSection);
+    }
+
+    activeSection = nextSection;
+
+    elements.adminSections.forEach((section) => {
+      section.hidden = section.dataset.adminSection !== activeSection;
+    });
+
+    elements.sectionLinks.forEach((link) => {
+      if (link.dataset.sectionLink === activeSection) {
+        link.setAttribute("aria-current", "page");
+      } else {
+        link.removeAttribute("aria-current");
+      }
+    });
+
+    window.SiteAdmin.activateSection(activeSection);
+  }
+
   function showOnly(panel) {
     elements.configPanel.hidden = panel !== "config";
     elements.loginPanel.hidden = panel !== "login";
@@ -707,6 +785,9 @@
     }
 
     busy = value;
+    if (currentUser && activeSection) {
+      window.SiteAdmin.setSectionBusy(activeSection, value);
+    }
     button.disabled = value;
     button.textContent = value ? busyText : button.dataset.defaultText || button.textContent;
   }

@@ -219,11 +219,11 @@ a {
 
 .hero-copy {
   display: grid;
-  grid-template-columns: .95fr 1.05fr;
+  grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr);
   align-items: center;
   min-height: 680px;
   padding-block: 70px 86px;
-  gap: 70px;
+  gap: clamp(48px, 5.5vw, 84px);
 }
 
 .hero-text {
@@ -249,9 +249,9 @@ a {
 .hero-text h1 {
   max-width: 100%;
   margin: 0;
-  font-size: clamp(64px, 7.2vw, 112px);
+  font-size: clamp(64px, 5.8vw, 84px);
   line-height: .84;
-  letter-spacing: -.075em;
+  letter-spacing: -.085em;
   text-transform: uppercase;
 }
 
@@ -338,6 +338,7 @@ a {
 
 .hero-photo {
   position: relative;
+  min-width: 0;
   height: 520px;
   margin: 0;
   overflow: hidden;
@@ -1506,9 +1507,11 @@ h2 {
   }
 
   .blade-line {
-    top: 43%;
-    left: 55%;
-    width: 58%;
+    top: auto;
+    right: -4%;
+    bottom: 40px;
+    left: auto;
+    width: 34%;
   }
 
   .quick-nav {
@@ -1638,21 +1641,54 @@ h2 {
   }
 
   .hero-photo {
-    height: 330px;
-    margin-inline: -11px;
+    width: 100%;
+    height: auto;
+    margin-inline: 0;
+    isolation: isolate;
+    border-left: 4px solid var(--navy);
+    clip-path: none;
+  }
+
+  .hero-photo::before {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    width: 36%;
+    height: clamp(58px, 18vw, 78px);
+    content: "";
+    background: var(--navy);
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+    pointer-events: none;
+  }
+
+  .hero-photo img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    object-position: center;
   }
 
   .photo-caption {
-    right: 22px;
-    bottom: 34px;
-    left: 28px;
+    z-index: 2;
+    right: 18px;
+    bottom: 32px;
+    left: 18px;
+    max-width: calc(100% - 36px);
+    padding-inline: 2px;
+  }
+
+  .photo-caption strong {
+    max-width: 100%;
+    font-size: 18px;
   }
 
   .blade-line {
-    top: 330px;
-    right: -6%;
+    top: clamp(70px, 18vw, 84px);
+    right: -4%;
+    bottom: auto;
     left: auto;
-    width: 46%;
+    width: 44%;
   }
 
   .hero-text h1 {
@@ -1671,10 +1707,12 @@ h2 {
 
   .hero-actions {
     display: grid;
+    width: 100%;
   }
 
   .button {
     width: 100%;
+    max-width: 100%;
   }
 
   .section {
@@ -1845,7 +1883,7 @@ h2 {
   }
 
   .hero-photo {
-    height: 300px;
+    height: auto;
   }
 
   .hero-text h1 {

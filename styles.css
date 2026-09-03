@@ -936,37 +936,47 @@ h2 {
 
 .gallery-grid {
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  grid-auto-rows: 230px;
-  gap: 16px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-auto-flow: dense;
+  grid-auto-rows: auto;
+  align-items: start;
+  gap: 18px;
+}
+
+.gallery-grid.masonry-ready {
+  grid-auto-rows: 8px;
 }
 
 .gallery-photo {
   position: relative;
-  grid-column: span 5;
+  grid-column: span 6;
+  align-self: start;
   margin: 0;
   overflow: hidden;
   background: var(--navy-2);
 }
 
-.gallery-photo:nth-child(n + 4) {
-  grid-column: span 6;
+.gallery-photo.landscape {
+  grid-column: span 7;
+}
+
+.gallery-photo.portrait {
+  grid-column: span 5;
 }
 
 .gallery-featured {
-  grid-row: span 2;
   grid-column: span 7;
 }
 
 .gallery-photo img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform .4s ease;
+  height: auto;
+  object-fit: contain;
+  transition: filter .25s ease;
 }
 
 .gallery-photo:hover img {
-  transform: scale(1.025);
+  filter: brightness(1.04);
 }
 
 .gallery-photo::after {
@@ -1000,6 +1010,10 @@ h2 {
   content: "Изображение недоступно";
   color: rgb(255 255 255 / 58%);
   font-size: 12px;
+}
+
+.gallery-photo.image-error {
+  min-height: 260px;
 }
 
 .contacts-section {
@@ -1343,19 +1357,16 @@ h2 {
 
   .gallery-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-auto-rows: 280px;
   }
 
   .gallery-photo,
-  .gallery-photo:nth-child(n + 4),
-  .gallery-featured {
-    grid-row: auto;
-    grid-column: auto;
+  .gallery-photo.landscape,
+  .gallery-photo.portrait {
+    grid-column: span 1;
   }
 
   .gallery-featured {
-    grid-column: 1 / -1;
-    height: 430px;
+    grid-column: span 2;
   }
 
   .home-cta {
@@ -1510,13 +1521,11 @@ h2 {
   }
 
   .gallery-grid {
-    grid-template-columns: 1fr;
-    grid-auto-rows: 270px;
+    display: block;
   }
 
-  .gallery-featured {
-    grid-column: auto;
-    height: 330px;
+  .gallery-photo + .gallery-photo {
+    margin-top: 16px;
   }
 
   .home-cta {

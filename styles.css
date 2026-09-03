@@ -219,16 +219,18 @@ a {
 
 .hero-copy {
   display: grid;
-  grid-template-columns: .95fr 1.05fr;
+  grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr);
   align-items: center;
   min-height: 680px;
   padding-block: 70px 86px;
-  gap: 70px;
+  gap: clamp(48px, 5.5vw, 84px);
 }
 
 .hero-text {
   position: relative;
   z-index: 2;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .kicker {
@@ -245,10 +247,11 @@ a {
 }
 
 .hero-text h1 {
+  max-width: 100%;
   margin: 0;
-  font-size: clamp(64px, 7.2vw, 112px);
+  font-size: clamp(64px, 5.8vw, 84px);
   line-height: .84;
-  letter-spacing: -.075em;
+  letter-spacing: -.085em;
   text-transform: uppercase;
 }
 
@@ -335,6 +338,7 @@ a {
 
 .hero-photo {
   position: relative;
+  min-width: 0;
   height: 520px;
   margin: 0;
   overflow: hidden;
@@ -1488,9 +1492,11 @@ h2 {
   }
 
   .blade-line {
-    top: 43%;
-    left: 55%;
-    width: 58%;
+    top: auto;
+    right: -4%;
+    bottom: 40px;
+    left: auto;
+    width: 34%;
   }
 
   .quick-nav {
@@ -1620,37 +1626,60 @@ h2 {
   }
 
   .hero-photo {
-    height: 330px;
-    margin-inline: -11px;
+    width: 100%;
+    height: auto;
+    margin-inline: 0;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 98%);
+  }
+
+  .hero-photo img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    object-position: center;
   }
 
   .photo-caption {
-    right: 22px;
-    bottom: 34px;
-    left: 28px;
+    right: 18px;
+    bottom: 32px;
+    left: 18px;
+    max-width: calc(100% - 36px);
+    padding-inline: 2px;
+  }
+
+  .photo-caption strong {
+    max-width: 100%;
+    font-size: 18px;
   }
 
   .blade-line {
-    top: 330px;
-    left: 62%;
-    width: 48%;
+    right: -6%;
+    bottom: 28px;
+    width: 38%;
   }
 
   .hero-text h1 {
-    font-size: clamp(52px, 17vw, 78px);
+    max-width: 100%;
+    font-size: clamp(46px, 12.6vw, 58px);
+    line-height: .88;
+    letter-spacing: -.085em;
   }
 
   .hero-lead {
+    max-width: 100%;
     margin-top: 24px;
     font-size: 16px;
+    overflow-wrap: break-word;
   }
 
   .hero-actions {
     display: grid;
+    width: 100%;
   }
 
   .button {
     width: 100%;
+    max-width: 100%;
   }
 
   .section {
@@ -1821,11 +1850,11 @@ h2 {
   }
 
   .hero-photo {
-    height: 300px;
+    height: auto;
   }
 
   .hero-text h1 {
-    font-size: 50px;
+    font-size: clamp(44px, 12.3vw, 48px);
   }
 
   .quick-nav > a {

@@ -153,6 +153,7 @@
     article.className = "news-row";
 
     const content = document.createElement("div");
+    content.className = "news-row-content";
     appendNewsContent(content, item, !preview);
 
     const arrow = createIcon("/images/icons/arrow-right.svg", "row-arrow");
@@ -163,7 +164,29 @@
       const index = document.createElement("span");
       index.className = "editorial-number";
       index.textContent = String(number).padStart(2, "0");
-      article.append(index, content, arrow);
+
+      article.append(index, content);
+
+      const imageUrl = resolveUrl(item.image_url);
+      if (imageUrl) {
+        const thumbnail = document.createElement("figure");
+        thumbnail.className = "news-row-thumbnail";
+
+        const image = document.createElement("img");
+        image.src = imageUrl;
+        image.alt = item.title || "Фотография к новости";
+        image.loading = "lazy";
+        image.addEventListener("error", () => {
+          thumbnail.remove();
+          article.classList.remove("has-thumbnail");
+        }, { once: true });
+
+        thumbnail.append(image);
+        article.classList.add("has-thumbnail");
+        article.append(thumbnail);
+      }
+
+      article.append(arrow);
     }
     return article;
   }

@@ -1652,13 +1652,19 @@ h2 {
   .hero-photo::before {
     position: absolute;
     z-index: 1;
-    top: 0;
+    top: auto;
+    bottom: 0;
     left: 0;
-    width: 36%;
-    height: clamp(58px, 18vw, 78px);
+    width: 52%;
+    height: 30px;
     content: "";
-    background: var(--navy);
-    clip-path: polygon(0 0, 100% 0, 0 100%);
+    background: linear-gradient(
+      7deg,
+      var(--navy) 0 46%,
+      var(--red) 47% 51%,
+      transparent 52%
+    );
+    clip-path: none;
     pointer-events: none;
   }
 
@@ -1684,11 +1690,7 @@ h2 {
   }
 
   .blade-line {
-    top: clamp(70px, 18vw, 84px);
-    right: -4%;
-    bottom: auto;
-    left: auto;
-    width: 44%;
+    display: none;
   }
 
   .hero-text h1 {

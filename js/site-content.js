@@ -15,13 +15,24 @@
     }
   });
 
-  Promise.allSettled([
-    loadHomeContent(),
-    loadNews(),
-    loadCalendar(),
-    loadResults(),
-    loadGallery()
-  ]).then((results) => {
+  const loaders = [];
+  if (document.querySelector("#hero-kicker")) {
+    loaders.push(loadHomeContent());
+  }
+  if (document.querySelector("#news-list")) {
+    loaders.push(loadNews());
+  }
+  if (document.querySelector("#calendar-list")) {
+    loaders.push(loadCalendar());
+  }
+  if (document.querySelector("#results-list")) {
+    loaders.push(loadResults());
+  }
+  if (document.querySelector("#gallery-albums")) {
+    loaders.push(loadGallery());
+  }
+
+  Promise.allSettled(loaders).then((results) => {
     results.forEach((result) => {
       if (result.status === "rejected") {
         console.warn("Не удалось обновить один из разделов. Показан статический fallback.", result.reason);
@@ -69,12 +80,20 @@
   }
 
   async function loadNews() {
-    const result = await client
+    const container = document.querySelector("#news-list");
+    const limit = parseLimit(container.dataset.limit);
+    const preview = container.dataset.mode === "preview";
+    let query = client
       .from("news")
       .select("id,title,date,date_label,summary,content,image_url,created_at")
       .eq("published", true)
       .order("date", { ascending: false })
       .order("created_at", { ascending: false });
+
+    if (limit) {
+      query = query.limit(limit);
+    }
+    const result = await query;
 
     if (result.error) {
       throw result.error;
@@ -83,13 +102,12 @@
       throw new Error("Получен некорректный ответ для новостей.");
     }
 
-    const container = document.querySelector("#news-list");
     if (result.data.length === 0) {
       container.replaceChildren(createEmptyState("Пока нет опубликованных новостей."));
       return;
     }
 
-    const featured = createFeaturedNews(result.data[0]);
+    const featured = createFeaturedNews(result.data[0], preview);
     if (result.data.length === 1) {
       container.classList.add("single");
       container.replaceChildren(featured);
@@ -99,13 +117,13 @@
     const stream = document.createElement("div");
     stream.className = "news-stream";
     result.data.slice(1).forEach((item, index) => {
-      stream.append(createNewsRow(item, index + 2));
+      stream.append(createNewsRow(item, index + 2, preview));
     });
     container.classList.remove("single");
     container.replaceChildren(featured, stream);
   }
 
-  function createFeaturedNews(item) {
+  function createFeaturedNews(item, preview) {
     const article = document.createElement("article");
     article.className = "news-featured";
 
@@ -125,32 +143,32 @@
 
     const body = document.createElement("div");
     body.className = "news-featured-body";
-    appendNewsContent(body, item);
+    appendNewsContent(body, item, !preview);
     article.append(body);
     return article;
   }
 
-  function createNewsRow(item, number) {
+  function createNewsRow(item, number, preview) {
     const article = document.createElement("article");
     article.className = "news-row";
 
-    const index = document.createElement("span");
-    index.className = "editorial-number";
-    index.textContent = String(number).padStart(2, "0");
-
     const content = document.createElement("div");
-    appendNewsContent(content, item);
+    appendNewsContent(content, item, !preview);
 
-    const arrow = document.createElement("span");
-    arrow.className = "row-arrow";
-    arrow.setAttribute("aria-hidden", "true");
-    arrow.textContent = "↗";
+    const arrow = createIcon("/images/icons/arrow-right.svg", "row-arrow");
 
-    article.append(index, content, arrow);
+    if (preview) {
+      article.append(content, arrow);
+    } else {
+      const index = document.createElement("span");
+      index.className = "editorial-number";
+      index.textContent = String(number).padStart(2, "0");
+      article.append(index, content, arrow);
+    }
     return article;
   }
 
-  function appendNewsContent(container, item) {
+  function appendNewsContent(container, item, allowDetails) {
     const time = document.createElement("time");
     if (item.date) {
       time.dateTime = item.date;
@@ -165,7 +183,7 @@
     summary.textContent = summaryText;
     container.append(time, title, summary);
 
-    if (item.content && item.content.trim() && item.content.trim() !== summaryText) {
+    if (allowDetails && item.content && item.content.trim() && item.content.trim() !== summaryText) {
       const details = document.createElement("details");
       details.className = "news-details";
       const toggle = document.createElement("summary");
@@ -178,12 +196,19 @@
   }
 
   async function loadCalendar() {
-    const result = await client
+    const container = document.querySelector("#calendar-list");
+    const limit = parseLimit(container.dataset.limit);
+    let query = client
       .from("competition_events")
       .select("id,title,start_date,end_date,location,description,category_label,short_label,created_at")
       .eq("published", true)
       .order("start_date", { ascending: true })
       .order("created_at", { ascending: false });
+
+    if (limit) {
+      query = query.limit(limit);
+    }
+    const result = await query;
 
     if (result.error) {
       throw result.error;
@@ -192,7 +217,6 @@
       throw new Error("Получен некорректный ответ для календаря.");
     }
 
-    const container = document.querySelector("#calendar-list");
     if (result.data.length === 0) {
       container.replaceChildren(createEmptyState("Пока нет опубликованных событий."));
       return;
@@ -241,7 +265,11 @@
 
     const code = document.createElement("div");
     code.className = "event-code";
-    code.textContent = item.short_label || "→";
+    if (item.short_label) {
+      code.textContent = item.short_label;
+    } else {
+      code.append(createIcon("/images/icons/arrow-right.svg", "event-arrow"));
+    }
     article.append(date, main, code);
     return article;
   }
@@ -425,6 +453,20 @@
     empty.className = "empty-state";
     empty.textContent = message;
     return empty;
+  }
+
+  function createIcon(source, className) {
+    const icon = document.createElement("img");
+    icon.src = source;
+    icon.alt = "";
+    icon.className = className;
+    icon.setAttribute("aria-hidden", "true");
+    return icon;
+  }
+
+  function parseLimit(value) {
+    const limit = Number.parseInt(value || "", 10);
+    return Number.isInteger(limit) && limit > 0 ? limit : 0;
   }
 
   function createImagePlaceholder(className) {

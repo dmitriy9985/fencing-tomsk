@@ -3,175 +3,79 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Официальный информационный ресурс Федерации фехтования Томской области: новости, календарь, результаты, тренеры и организации.">
+  <meta name="description" content="Официальный сайт Федерации фехтования Томской области: новости, календарь, результаты и развитие фехтования в регионе.">
   <meta name="referrer" content="no-referrer">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self'; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>Федерация фехтования Томской области</title>
-  <link rel="icon" type="image/png" href="images/logo/logoffto.png">
-  <link rel="apple-touch-icon" href="images/logo/logoffto.png">
-  <link rel="stylesheet" href="styles.css">
-  <script defer src="js/site.js"></script>
+  <link rel="icon" type="image/png" href="/images/logo/logoffto.png">
+  <link rel="apple-touch-icon" href="/images/logo/logoffto.png">
+  <link rel="stylesheet" href="/styles.css">
+  <script defer src="/js/site.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
-  <script defer src="js/supabase-config.js"></script>
-  <script defer src="js/site-content.js"></script>
+  <script defer src="/js/supabase-config.js"></script>
+  <script defer src="/js/site-content.js"></script>
 </head>
-<body>
+<body data-page="home">
   <a class="skip-link" href="#main-content">Перейти к содержанию</a>
-
-  <header class="site-header" id="site-header">
+  <header class="site-header">
     <div class="wrap header-inner">
-      <a class="brand" href="#home" aria-label="На главную">
-        <img src="images/logo/logoffto.png" alt="">
-        <span><b>Фехтование в Томске</b><small>Федерация фехтования Томской области</small></span>
-      </a>
-      <button class="mobile-menu" id="mobile-menu" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Открыть меню">
-        <span></span><span></span><span></span>
-      </button>
+      <a class="brand" href="/" aria-label="На главную"><img src="/images/logo/logoffto.png" alt=""><span><b>Фехтование в Томске</b><small>Федерация фехтования Томской области</small></span></a>
+      <button class="mobile-menu" id="mobile-menu" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Открыть меню"><span></span><span></span><span></span></button>
       <nav class="desktop-nav" id="site-nav" aria-label="Основная навигация">
-        <a href="#home" class="active">Главная</a>
-        <a href="#news">Новости</a>
-        <a href="#calendar">Календарь</a>
-        <a href="#results">Результаты</a>
-        <a href="#coaches">Тренеры</a>
-        <a href="#organizations">Организации</a>
-        <a href="#gallery">Галерея</a>
-        <a href="#contacts">Контакты</a>
+        <a href="/" data-nav="home">Главная</a><a href="/news/" data-nav="news">Новости</a><a href="/calendar/" data-nav="calendar">Календарь</a><a href="/results/" data-nav="results">Результаты</a><a href="/coaches/" data-nav="coaches">Тренеры</a><a href="/organizations/" data-nav="organizations">Организации</a><a href="/gallery/" data-nav="gallery">Галерея</a><a href="/contacts/" data-nav="contacts">Контакты</a>
       </nav>
     </div>
   </header>
 
   <main id="main-content">
-    <section class="home-hero" id="home">
+    <section class="home-hero">
       <div class="hero-copy wrap">
         <div class="hero-text">
           <p class="kicker kicker-light" id="hero-kicker">Томская область • официальный сайт</p>
-          <h1 id="hero-title"><span id="hero-title-primary">Фехтование</span><span id="hero-title-secondary">в Томске</span></h1>
+          <h1><span id="hero-title-primary">Фехтование</span><span id="hero-title-secondary">в Томске</span></h1>
           <p class="hero-lead" id="hero-subtitle">Новости, календарь соревнований, результаты, тренеры и развитие фехтования в Томской области.</p>
-          <div class="hero-actions">
-            <a class="button button-red" href="#calendar">Календарь соревнований <span aria-hidden="true">→</span></a>
-            <a class="button button-ghost" href="#contacts">Связаться с федерацией</a>
-          </div>
+          <div class="hero-actions"><a class="button button-red" href="/calendar/">Календарь соревнований <img src="/images/icons/arrow-right.svg" alt=""></a><a class="button button-ghost" href="/contacts/">Связаться с федерацией</a></div>
         </div>
-        <figure class="hero-photo">
-          <img id="hero-image" src="images/awards/shutova2026/shutova2026.jpeg" alt="Томские фехтовальщики на турнире">
-          <figcaption class="photo-caption"><span>Томская область</span><strong>Воспитываем характер победителей</strong></figcaption>
-        </figure>
+        <figure class="hero-photo"><img id="hero-image" src="/images/awards/shutova2026/shutova2026.jpeg" alt="Томские фехтовальщики на турнире"><figcaption class="photo-caption"><span>Томская область</span><strong>Фехтование в Томской области</strong></figcaption></figure>
       </div>
       <div class="blade-line" aria-hidden="true"></div>
     </section>
 
     <nav class="quick-nav wrap" aria-label="Основные разделы">
-      <a href="#news"><span class="quick-mark" aria-hidden="true">01</span><span><b>Новости</b><small>События федерации</small></span><span class="quick-arrow" aria-hidden="true">→</span></a>
-      <a href="#calendar"><span class="quick-mark" aria-hidden="true">02</span><span><b>Календарь</b><small>Турниры и положения</small></span><span class="quick-arrow" aria-hidden="true">→</span></a>
-      <a href="#results"><span class="quick-mark" aria-hidden="true">03</span><span><b>Результаты</b><small>Выступления спортсменов</small></span><span class="quick-arrow" aria-hidden="true">→</span></a>
+      <a href="/news/"><img class="quick-icon" src="/images/icons/news.svg" alt=""><span><b>Новости</b><small>События федерации</small></span><img class="quick-arrow" src="/images/icons/arrow-right.svg" alt=""></a>
+      <a href="/calendar/"><img class="quick-icon" src="/images/icons/calendar.svg" alt=""><span><b>Календарь</b><small>Турниры и положения</small></span><img class="quick-arrow" src="/images/icons/arrow-right.svg" alt=""></a>
+      <a href="/results/"><img class="quick-icon" src="/images/icons/medal.svg" alt=""><span><b>Результаты</b><small>Выступления спортсменов</small></span><img class="quick-arrow" src="/images/icons/arrow-right.svg" alt=""></a>
     </nav>
 
-    <section class="section wrap about-split" id="about">
+    <section class="section wrap about-split">
       <div><p class="kicker">О федерации</p><h2 id="about-title">Развиваем фехтование в регионе</h2></div>
-      <div class="about-copy">
-        <p id="about-text">Федерация фехтования Томской области осуществляет развитие и популяризацию фехтования на территории региона. Федерация организует и проводит соревнования различного уровня, содействует подготовке спортсменов, развитию тренерского состава и участию томских фехтовальщиков во всероссийских и межрегиональных турнирах. На сайте публикуются новости, календарь соревнований, результаты выступлений спортсменов и официальная информация о деятельности федерации.</p>
-        <a class="text-link" href="#organizations">Организации региона <span aria-hidden="true">→</span></a>
-      </div>
+      <div class="about-copy"><p id="about-text">Федерация фехтования Томской области осуществляет развитие и популяризацию фехтования на территории региона. Федерация организует и проводит соревнования различного уровня, содействует подготовке спортсменов, развитию тренерского состава и участию томских фехтовальщиков во всероссийских и межрегиональных турнирах. На сайте публикуются новости, календарь соревнований, результаты выступлений спортсменов и официальная информация о деятельности федерации.</p><a class="text-link" href="/organizations/">Организации региона <img src="/images/icons/arrow-right.svg" alt=""></a></div>
     </section>
 
-    <section class="section section-ink" id="news">
+    <section class="section section-ink home-preview-section">
       <div class="wrap">
-        <div class="section-heading light-heading">
-          <div><p class="kicker kicker-light">Последние события</p><h2>Новости федерации</h2></div>
-          <p class="section-note">Опубликованные новости — новые сверху</p>
-        </div>
-        <div class="news-layout" id="news-list">
-          <article class="news-featured">
-            <img src="images/awards/shutova2026/shutova2026.jpeg" alt="Фехтовальщики Томска">
-            <div class="news-featured-body"><time datetime="2026-05-17">17 мая 2026</time><h3>Томские фехтовальщики завоевали золото и две бронзы на турнире Любови Шутовой</h3><p>На межрегиональном турнире на призы заслуженного мастера спорта России Любови Шутовой томские спортсмены показали отличные результаты. Захар Пронин стал победителем соревнований среди юношей, Родион Костырев завоевал бронзовую медаль в личном первенстве. Также команда Томской области стала бронзовым призёром командных соревнований.</p></div>
-          </article>
-          <div class="news-stream">
-            <article class="news-row"><span class="editorial-number">02</span><div><time datetime="2026-03-14">14 марта 2026</time><h3>Первенство Томской области: девушки</h3><p>По итогам соревнований первое место заняла Алина Коренькова, второе место — Анна Мужецкая, третьи места — Вера Бурлевич и Мария Терехина.</p></div><span class="row-arrow" aria-hidden="true">↗</span></article>
-            <article class="news-row"><span class="editorial-number">03</span><div><time datetime="2025-11-18">15–18 ноября 2025</time><h3>Бронза на Кубке Легенд в Уфе</h3><p>Томские фехтовальщики заняли 3 место в командном первенстве Кубка Легенд Республики Башкортостан. Состав команды: Пронин Захар, Яновский Александр и Костырев Родион.</p></div><span class="row-arrow" aria-hidden="true">↗</span></article>
-          </div>
+        <div class="section-heading light-heading"><div><p class="kicker kicker-light">Последние события</p><h2>Новости федерации</h2></div><a class="section-link section-link-light" href="/news/">Все новости <img src="/images/icons/arrow-right.svg" alt=""></a></div>
+        <div class="news-layout home-news-layout" id="news-list" data-mode="preview" data-limit="3">
+          <article class="news-featured"><img src="/images/awards/shutova2026/shutova2026.jpeg" alt="Фехтовальщики Томска"><div class="news-featured-body"><time datetime="2026-05-17">17 мая 2026</time><h3>Томские фехтовальщики завоевали золото и две бронзы на турнире Любови Шутовой</h3><p>Томские спортсмены показали отличные результаты на межрегиональном турнире.</p></div></article>
+          <div class="news-stream"><article class="news-row"><div><time datetime="2026-03-14">14 марта 2026</time><h3>Первенство Томской области: девушки</h3><p>Победители и призёры соревнований по фехтованию на шпагах.</p></div><img class="row-arrow" src="/images/icons/arrow-right.svg" alt=""></article><article class="news-row"><div><time datetime="2025-11-18">15–18 ноября 2025</time><h3>Бронза на Кубке Легенд в Уфе</h3><p>Команда Томской области заняла третье место.</p></div><img class="row-arrow" src="/images/icons/arrow-right.svg" alt=""></article></div>
         </div>
       </div>
     </section>
 
-    <section class="section calendar-section" id="calendar">
+    <section class="section calendar-section home-preview-section">
       <div class="wrap">
-        <div class="section-heading"><div><p class="kicker">Соревнования</p><h2>Календарь соревнований</h2></div><p class="section-note">Предстоящие и опубликованные события федерации</p></div>
-        <div class="event-list" id="calendar-list">
-          <article class="event-row"><div class="event-date"><span>09–12</span><b>июнь</b><small>2026</small></div><div class="event-main"><p class="event-category">Первенство России</p><h3>Первенство России по фехтованию среди юношей и девушек 13–15 лет</h3><div class="event-meta"><span>Тольятти</span><span>Личные и командные соревнования на шпагах</span></div></div><div class="event-code">ФР</div></article>
-        </div>
+        <div class="section-heading"><div><p class="kicker">Ближайшие старты</p><h2>Календарь соревнований</h2></div><a class="section-link" href="/calendar/">Весь календарь <img src="/images/icons/arrow-right.svg" alt=""></a></div>
+        <div class="event-list" id="calendar-list" data-limit="1"><article class="event-row"><div class="event-date"><span>09–12</span><b>июнь</b><small>2026</small></div><div class="event-main"><p class="event-category">Первенство России</p><h3>Первенство России по фехтованию среди юношей и девушек 13–15 лет</h3><div class="event-meta"><span>Тольятти</span><span>Личные и командные соревнования на шпагах</span></div></div><div class="event-code">ФР</div></article></div>
       </div>
     </section>
 
-    <section class="section results-section" id="results">
-      <div class="wrap">
-        <div class="section-heading"><div><p class="kicker">Результаты</p><h2>Итоги соревнований</h2></div><p class="section-note">Выступления спортсменов Томской области</p></div>
-        <div class="results-list" id="results-list">
-          <article class="result-row"><span class="editorial-number">01</span><time datetime="2026-05-17">17.05.2026</time><div><h3>Турнир на призы Любови Шутовой</h3><p>Захар Пронин — 1 место, Родион Костырев — 3 место; команда Томской области — 3 место</p></div><span class="result-category">Юноши, шпага</span></article>
-          <article class="result-row"><span class="editorial-number">02</span><time datetime="2026-03-14">14.03.2026</time><div><h3>Первенство Томской области</h3><p>Алина Коренькова — 1 место, Анна Мужецкая — 2 место, Вера Бурлевич и Мария Терехина — 3 место</p></div><span class="result-category">Девушки, шпага</span></article>
-          <article class="result-row"><span class="editorial-number">03</span><time datetime="2025-11-15">15–18.11.2025</time><div><h3>Кубок Легенд Республики Башкортостан</h3><p>Команда Томской области — 3 место</p></div><span class="result-category">Юноши, командные соревнования, шпага</span></article>
-        </div>
-      </div>
-    </section>
-
-    <section class="section coaches-section" id="coaches">
-      <div class="wrap">
-        <div class="section-heading"><div><p class="kicker">Команда федерации</p><h2>Тренеры</h2></div><p class="section-note">Специалисты по фехтованию на шпагах</p></div>
-        <div class="coaches-grid">
-          <article class="coach-card"><figure><img src="images/coaches/Моспанов.jpg" alt="Моспанов Дмитрий Сергеевич"></figure><div class="coach-meta"><span>01 / Шпага</span><h3>Моспанов Дмитрий Сергеевич</h3><p>Президент Федерации фехтования Томской области. Тренер по фехтованию на шпагах</p></div></article>
-          <article class="coach-card"><figure><img src="images/coaches/Манапов.jpg" alt="Манапов Ринат Разильевич"></figure><div class="coach-meta"><span>02 / Шпага</span><h3>Манапов Ринат Разильевич</h3><p>Тренер по фехтованию на шпагах</p></div></article>
-          <article class="coach-card"><figure><img src="images/coaches/Шматько.jpg" alt="Шматько Сергей Вадимович"></figure><div class="coach-meta"><span>03 / Шпага</span><h3>Шматько Сергей Вадимович</h3><p>Тренер по фехтованию на шпагах</p></div></article>
-          <article class="coach-card"><figure><img src="images/coaches/Путинцев.jpeg" alt="Путинцев Николай Григорьевич"></figure><div class="coach-meta"><span>04 / Шпага</span><h3>Путинцев Николай Григорьевич</h3><p>Тренер по фехтованию на шпагах</p></div></article>
-        </div>
-      </div>
-    </section>
-
-    <section class="section organizations-section" id="organizations">
-      <div class="wrap organizations-layout">
-        <div><p class="kicker kicker-light">Фехтование в регионе</p><h2>Организации</h2><p class="organizations-lead">Организация, которая развивает фехтование, проводит соревнования и поддерживает спортсменов Томской области.</p></div>
-        <article class="organization-row"><span class="editorial-number">01</span><div><p class="organization-type">Региональная федерация</p><h3>Региональная спортивная общественная организация «Федерация фехтования Томской области»</h3><p>Развитие и популяризация фехтования, организация соревнований, поддержка спортсменов и тренерского состава региона.</p><address>Томск, пр. Ленина, 207Б</address></div><a href="#contacts" aria-label="Перейти к контактам">→</a></article>
-      </div>
-    </section>
-
-    <section class="section gallery-section" id="gallery">
-      <div class="wrap">
-        <div class="section-heading light-heading"><div><p class="kicker kicker-light">Галерея</p><h2>Фехтование в Томске</h2></div><p class="section-note">Соревнования и жизнь федерации</p></div>
-        <div id="gallery-albums">
-          <section class="gallery-album" aria-label="Фехтование в Томске">
-            <div class="gallery-grid">
-              <figure class="gallery-photo gallery-featured landscape"><img src="images/awards/tomsk2025/men.jpeg" alt="Первенство Томской области 2026"><figcaption>Первенство Томской области 2026</figcaption></figure>
-              <figure class="gallery-photo portrait"><img src="images/awards/tomsk2025/womenu23.jpeg" alt="Первенство Томской области 2026"><figcaption>Первенство Томской области 2026</figcaption></figure>
-              <figure class="gallery-photo landscape"><img src="images/awards/tomsk2025/women.jpeg" alt="Первенство Томской области 2026"><figcaption>Первенство Томской области 2026</figcaption></figure>
-              <figure class="gallery-photo landscape"><img src="images/life/dayoftomsk2026.jpeg" alt="День города Томска 2026"><figcaption>День города Томска 2026</figcaption></figure>
-              <figure class="gallery-photo portrait"><img src="images/awards/shutova2026/shutova2026.jpeg" alt="Турнир на призы Любови Шутовой"><figcaption>Турнир на призы Любови Шутовой</figcaption></figure>
-            </div>
-          </section>
-        </div>
-      </div>
-    </section>
-
-    <section class="section contacts-section" id="contacts">
-      <div class="wrap contacts-layout">
-        <div class="contacts-copy"><p class="kicker">Контакты</p><h2>Связаться с федерацией</h2><p>Региональная спортивная общественная организация «Федерация фехтования Томской области»</p><address><span>Томск, пр. Ленина, 207Б</span><a href="tel:+79833410327">8 (983) 341-03-27</a><a href="mailto:fencing-tomsk@mail.ru">fencing-tomsk@mail.ru</a></address></div>
-        <aside class="contact-panel" aria-label="Контактные данные федерации">
-          <div class="contact-detail"><span>01 / Телефон</span><a href="tel:+79833410327">8 (983) 341-03-27</a></div>
-          <div class="contact-detail"><span>02 / Электронная почта</span><a href="mailto:fencing-tomsk@mail.ru">fencing-tomsk@mail.ru</a></div>
-          <div class="contact-detail"><span>03 / Адрес</span><p>Томск, пр. Ленина, 207Б</p></div>
-        </aside>
-      </div>
-    </section>
-
-    <section class="home-cta wrap" aria-label="Призыв познакомиться с тренерами">
-      <div><p class="kicker kicker-light">Фехтование в Томске</p><h2>Точность. Характер. Движение.</h2></div>
-      <a class="button button-white" href="#coaches">Познакомиться с тренерами <span aria-hidden="true">→</span></a>
+    <section class="home-contact-band">
+      <div class="wrap home-contact-inner"><div><p class="kicker kicker-light">Федерация рядом</p><h2>Есть вопрос о тренировках или соревнованиях?</h2></div><div class="home-contact-actions"><a href="tel:+79833410327">8 (983) 341-03-27</a><a class="button button-white" href="/contacts/">Все контакты <img src="/images/icons/arrow-right.svg" alt=""></a></div></div>
     </section>
   </main>
 
   <footer class="site-footer">
-    <div class="wrap footer-main">
-      <div class="footer-brand"><img src="images/logo/logoffto.png" alt=""><div><b>Федерация фехтования<br>Томской области</b><p>Официальный информационный ресурс региональной спортивной общественной организации.</p></div></div>
-      <div><h3>Разделы</h3><div class="footer-links"><a href="#news">Новости</a><a href="#calendar">Календарь</a><a href="#results">Результаты</a><a href="#coaches">Тренеры</a><a href="#organizations">Организации</a><a href="#gallery">Галерея</a></div></div>
-      <div><h3>Контакты</h3><div class="footer-contacts"><a href="tel:+79833410327">8 (983) 341-03-27</a><a href="mailto:fencing-tomsk@mail.ru">fencing-tomsk@mail.ru</a><span>Томск, пр. Ленина, 207Б</span></div></div>
-    </div>
+    <div class="wrap footer-main"><div class="footer-brand"><img src="/images/logo/logoffto.png" alt=""><div><b>Федерация фехтования<br>Томской области</b><p>Официальный информационный ресурс региональной спортивной общественной организации.</p></div></div><div><h3>Разделы</h3><div class="footer-links"><a href="/news/">Новости</a><a href="/calendar/">Календарь</a><a href="/results/">Результаты</a><a href="/coaches/">Тренеры</a><a href="/organizations/">Организации</a><a href="/gallery/">Галерея</a></div></div><div><h3>Контакты</h3><div class="footer-contacts"><a href="tel:+79833410327">8 (983) 341-03-27</a><a href="mailto:fencing-tomsk@mail.ru">fencing-tomsk@mail.ru</a><span>Томск, пр. Ленина, 207Б</span></div></div></div>
     <div class="wrap footer-bottom"><span>© 2026 Федерация фехтования Томской области</span><span>Официальный сайт</span></div>
   </footer>
 </body>

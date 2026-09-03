@@ -7,6 +7,14 @@
   const galleryAlbums = document.querySelector("#gallery-albums");
   let galleryResizeFrame = 0;
 
+  navigationLinks.forEach((link) => {
+    const isCurrent = link.dataset.nav === document.body.dataset.page;
+    link.classList.toggle("active", isCurrent);
+    if (isCurrent) {
+      link.setAttribute("aria-current", "page");
+    }
+  });
+
   function closeMenu() {
     navigation.classList.remove("open");
     menuButton.setAttribute("aria-expanded", "false");
@@ -107,26 +115,4 @@
     scheduleGalleryLayout();
   }
 
-  if ("IntersectionObserver" in window) {
-    const sectionIds = ["home", "news", "calendar", "results", "coaches", "organizations", "gallery", "contacts"];
-    const sections = sectionIds.map((id) => document.getElementById(id)).filter(Boolean);
-    const observer = new IntersectionObserver((entries) => {
-      const visible = entries
-        .filter((entry) => entry.isIntersecting)
-        .sort((left, right) => right.intersectionRatio - left.intersectionRatio)[0];
-
-      if (!visible) {
-        return;
-      }
-
-      navigationLinks.forEach((link) => {
-        link.classList.toggle("active", link.getAttribute("href") === "#" + visible.target.id);
-      });
-    }, {
-      rootMargin: "-25% 0px -60%",
-      threshold: [0, 0.15, 0.45]
-    });
-
-    sections.forEach((section) => observer.observe(section));
-  }
 }());

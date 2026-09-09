@@ -298,11 +298,13 @@
     meta.className = "event-meta";
     if (item.location) {
       const location = document.createElement("span");
+      location.className = "event-location";
       location.textContent = item.location;
       meta.append(location);
     }
     if (item.description) {
       const description = document.createElement("span");
+      description.className = "event-description";
       description.textContent = item.description;
       meta.append(description);
     }

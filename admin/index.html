@@ -171,15 +171,43 @@
               <div class="editor-layout">
                 <form id="calendar-form" class="form-stack">
                   <label>Название<input id="calendar-title" type="text" maxlength="200" required></label>
-                  <div class="form-grid two-columns">
-                    <label>Дата начала<input id="calendar-start-date" type="date" required></label>
+                  <label>Тип даты
+                    <select id="calendar-date-precision">
+                      <option value="exact">Точная дата</option>
+                      <option value="month">Известен только месяц</option>
+                      <option value="approximate">Ориентировочная дата</option>
+                    </select>
+                  </label>
+                  <div id="calendar-exact-date-fields" class="form-grid two-columns">
+                    <label>Дата начала<input id="calendar-start-date" type="date"></label>
                     <label>Дата окончания<input id="calendar-end-date" type="date"></label>
+                  </div>
+                  <p id="calendar-date-mode-hint" class="field-hint" hidden>Эти даты будут показаны как ориентировочные.</p>
+                  <div id="calendar-month-date-fields" class="form-grid two-columns" hidden>
+                    <label>Месяц
+                      <select id="calendar-date-month">
+                        <option value="">Выберите месяц</option>
+                        <option value="1">Январь</option>
+                        <option value="2">Февраль</option>
+                        <option value="3">Март</option>
+                        <option value="4">Апрель</option>
+                        <option value="5">Май</option>
+                        <option value="6">Июнь</option>
+                        <option value="7">Июль</option>
+                        <option value="8">Август</option>
+                        <option value="9">Сентябрь</option>
+                        <option value="10">Октябрь</option>
+                        <option value="11">Ноябрь</option>
+                        <option value="12">Декабрь</option>
+                      </select>
+                    </label>
+                    <label>Год<input id="calendar-date-year" type="number" min="2000" max="2100" step="1" inputmode="numeric"></label>
                   </div>
                   <label>Место проведения<input id="calendar-location" type="text" maxlength="200"></label>
                   <label>Описание<textarea id="calendar-description" maxlength="2000" rows="5"></textarea></label>
                   <div class="form-grid two-columns">
                     <label>Категория<input id="calendar-category" type="text" maxlength="100"></label>
-                    <label>Короткая метка<input id="calendar-short-label" type="text" maxlength="12"></label>
+                    <label>Короткая метка<input id="calendar-short-label" type="text" maxlength="40"></label>
                   </div>
                   <label class="checkbox-label">
                     <input id="calendar-published" type="checkbox">

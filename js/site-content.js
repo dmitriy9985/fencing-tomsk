@@ -223,9 +223,9 @@
     const limit = parseLimit(container.dataset.limit);
     let query = client
       .from("competition_events")
-      .select("id,title,start_date,end_date,location,description,category_label,short_label,created_at")
+      .select("id,title,start_date,end_date,date_precision,date_month,date_year,sort_date,location,description,category_label,short_label,created_at")
       .eq("published", true)
-      .order("start_date", { ascending: true })
+      .order("sort_date", { ascending: true })
       .order("created_at", { ascending: false });
 
     if (limit) {
@@ -255,15 +255,37 @@
     article.className = "event-row";
 
     const date = document.createElement("div");
-    date.className = "event-date";
-    const dateParts = eventDateParts(item.start_date, item.end_date);
+    const precision = normalizeDatePrecision(item.date_precision);
+    date.className = `event-date event-date-${precision}`;
+    date.setAttribute("aria-label", formatEventDateLabel(item));
+
+    if (precision === "approximate") {
+      const precisionLabel = document.createElement("em");
+      precisionLabel.className = "event-date-precision";
+      precisionLabel.textContent = "Ориентировочно";
+      date.append(precisionLabel);
+    }
+
+    const dateParts = precision === "month"
+      ? monthDateParts(item.date_month, item.date_year)
+      : eventDateParts(item.start_date, item.end_date);
     const range = document.createElement("span");
     range.textContent = dateParts.range;
     const month = document.createElement("b");
     month.textContent = dateParts.month;
     const year = document.createElement("small");
     year.textContent = dateParts.year;
-    date.append(range, month, year);
+    date.append(range, month);
+    if (dateParts.year) {
+      date.append(year);
+    }
+
+    if (precision === "month") {
+      const note = document.createElement("small");
+      note.className = "event-date-note";
+      note.textContent = "Дата уточняется";
+      date.append(note);
+    }
 
     const main = document.createElement("div");
     main.className = "event-main";
@@ -290,6 +312,9 @@
     code.className = "event-code";
     if (item.short_label) {
       code.textContent = item.short_label;
+      if (item.short_label.length > 8) {
+        code.classList.add("event-code-wide");
+      }
     } else {
       code.append(createIcon("/images/icons/arrow-right.svg", "event-arrow"));
     }
@@ -557,8 +582,8 @@
     const sameMonth = start.getUTCMonth() === end.getUTCMonth()
       && start.getUTCFullYear() === end.getUTCFullYear();
     const months = [
-      "январь", "февраль", "март", "апрель", "май", "июнь",
-      "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь"
+      "января", "февраля", "марта", "апреля", "мая", "июня",
+      "июля", "августа", "сентября", "октября", "ноября", "декабря"
     ];
 
     if (sameMonth) {
@@ -577,6 +602,54 @@
         ? String(start.getUTCFullYear())
         : String(start.getUTCFullYear()) + "–" + String(end.getUTCFullYear())
     };
+  }
+
+  function monthDateParts(monthValue, yearValue) {
+    const monthIndex = Number(monthValue) - 1;
+    const months = [
+      "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
+      "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"
+    ];
+    return {
+      range: months[monthIndex] || "Месяц",
+      month: yearValue ? String(yearValue) : "",
+      year: ""
+    };
+  }
+
+  function normalizeDatePrecision(value) {
+    return value === "month" || value === "approximate" ? value : "exact";
+  }
+
+  function formatEventDateLabel(item) {
+    const precision = normalizeDatePrecision(item.date_precision);
+    if (precision === "month") {
+      const parts = monthDateParts(item.date_month, item.date_year);
+      return `${parts.range} ${parts.month}. Дата уточняется.`.trim();
+    }
+
+    const start = parseDate(item.start_date);
+    const end = parseDate(item.end_date) || start;
+    if (!start || !end) {
+      return "Дата события не указана";
+    }
+    const months = [
+      "января", "февраля", "марта", "апреля", "мая", "июня",
+      "июля", "августа", "сентября", "октября", "ноября", "декабря"
+    ];
+    const sameMonth = start.getUTCMonth() === end.getUTCMonth()
+      && start.getUTCFullYear() === end.getUTCFullYear();
+    let label;
+    if (sameMonth) {
+      const startDay = start.getUTCDate();
+      const endDay = end.getUTCDate();
+      const days = startDay === endDay ? String(startDay) : `${startDay}–${endDay}`;
+      label = `${days} ${months[start.getUTCMonth()]} ${start.getUTCFullYear()}`;
+    } else {
+      label = `${start.getUTCDate()} ${months[start.getUTCMonth()]} ${start.getUTCFullYear()}`
+        + ` – ${end.getUTCDate()} ${months[end.getUTCMonth()]} ${end.getUTCFullYear()}`;
+    }
+    return precision === "approximate" ? `Ориентировочно ${label}` : label;
   }
 
   function isConfigured(value) {

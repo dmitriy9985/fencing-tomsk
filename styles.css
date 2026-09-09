@@ -783,7 +783,7 @@ h2 {
 
 .event-row {
   display: grid;
-  grid-template-columns: 150px minmax(0, 1fr) 70px;
+  grid-template-columns: 150px minmax(0, 1fr) minmax(70px, max-content);
   align-items: center;
   padding: 34px 0;
   gap: 50px;
@@ -813,6 +813,34 @@ h2 {
 .event-date small {
   margin-top: 5px;
   opacity: .72;
+}
+
+.event-date-precision {
+  max-width: 130px;
+  margin: 0 auto 4px;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: .06em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.event-date-month span {
+  font-size: 23px;
+  letter-spacing: -.03em;
+}
+
+.event-date-month b {
+  font-size: 17px;
+}
+
+.event-date .event-date-note {
+  max-width: 120px;
+  margin: 7px auto 0;
+  font-size: 11px;
+  line-height: 1.25;
+  opacity: .88;
 }
 
 .event-main h3 {
@@ -1335,6 +1363,18 @@ h2 {
   border-radius: 50%;
 }
 
+.event-code-wide {
+  width: auto;
+  height: auto;
+  min-height: 44px;
+  padding: 10px 14px;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.25;
+  text-align: center;
+  border-radius: 999px;
+}
+
 .footer-brand b {
   color: var(--white);
   font-size: 15px;
@@ -1800,6 +1840,20 @@ h2 {
 
   .event-date small {
     margin: 0;
+  }
+
+  .event-date-approximate .event-date-precision,
+  .event-date-month .event-date-note {
+    grid-column: 1 / -1;
+  }
+
+  .event-date-month {
+    grid-template-columns: auto auto;
+  }
+
+  .event-date .event-date-note {
+    max-width: none;
+    margin-top: 0;
   }
 
   .result-row {

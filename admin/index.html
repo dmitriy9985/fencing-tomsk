@@ -111,11 +111,21 @@
                     Полный текст
                     <textarea id="news-content" maxlength="20000" rows="8" required></textarea>
                   </label>
+                  <p class="form-section-title">Главное фото</p>
                   <label>
-                    Фотография
+                    Обложка новости
                     <input id="news-image" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
                     <small id="image-help">JPG, JPEG, PNG или WEBP. До 10 МБ; большое изображение будет уменьшено.</small>
                   </label>
+                  <div class="additional-photos-field">
+                    <p class="form-section-title">Дополнительные фотографии</p>
+                    <label>
+                      Добавить фотографии
+                      <input id="news-additional-images" type="file" multiple accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+                      <small id="additional-images-help">До 10 фотографий. JPG, JPEG, PNG или WEBP; каждый исходный файл — до 10 МБ.</small>
+                    </label>
+                    <div id="news-additional-photos" class="additional-photo-list" aria-live="polite"></div>
+                  </div>
                   <label class="checkbox-label">
                     <input id="news-published" type="checkbox">
                     <span><b>Опубликовано</b><small>Если выключено, новость сохранится как черновик и не появится на сайте.</small></span>

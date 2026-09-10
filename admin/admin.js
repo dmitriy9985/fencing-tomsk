@@ -4,6 +4,7 @@
   const MAX_SOURCE_FILE_SIZE = 10 * 1024 * 1024;
   const MAX_UPLOAD_FILE_SIZE = 5 * 1024 * 1024;
   const MAX_IMAGE_SIDE = 1920;
+  const MAX_ADDITIONAL_PHOTOS = 10;
   const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
   const STORAGE_BUCKET = "news-images";
   const ADMIN_SECTIONS = new Set(["news", "calendar", "results", "gallery", "home"]);
@@ -35,6 +36,9 @@
     content: document.getElementById("news-content"),
     image: document.getElementById("news-image"),
     imageHelp: document.getElementById("image-help"),
+    additionalImages: document.getElementById("news-additional-images"),
+    additionalImagesHelp: document.getElementById("additional-images-help"),
+    additionalPhotos: document.getElementById("news-additional-photos"),
     published: document.getElementById("news-published"),
     saveButton: document.getElementById("save-button"),
     previewImage: document.getElementById("preview-image"),
@@ -51,6 +55,9 @@
   let newsItems = [];
   let editingItem = null;
   let previewObjectUrl = "";
+  let additionalPhotos = [];
+  let additionalPhotoKey = 0;
+  let additionalLoadToken = 0;
   let busy = false;
   let activeSection = "";
 
@@ -109,6 +116,7 @@
       }));
 
     elements.image.addEventListener("change", handlePreviewImage);
+    elements.additionalImages.addEventListener("change", handleAdditionalImages);
     elements.previewImage.addEventListener("error", () => setPreviewImage(""));
     window.addEventListener("hashchange", updateSectionFromHash);
   }
@@ -276,7 +284,7 @@
     editButton.type = "button";
     editButton.className = "button button-secondary button-small";
     editButton.textContent = "Изменить";
-    editButton.addEventListener("click", () => openEditForm(item.id));
+    editButton.addEventListener("click", () => void openEditForm(item.id));
 
     const deleteButton = document.createElement("button");
     deleteButton.type = "button";
@@ -294,6 +302,7 @@
       return;
     }
     editingItem = null;
+    resetAdditionalPhotos();
     elements.newsForm.reset();
     elements.date.value = todayAsInputValue();
     elements.editorTitle.textContent = "Новая новость";
@@ -307,7 +316,7 @@
     elements.editorPanel.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  function openEditForm(id) {
+  async function openEditForm(id) {
     if (!elements.editorPanel.hidden && !window.SiteAdmin.confirmDiscard("news")) {
       return;
     }
@@ -318,6 +327,7 @@
     }
 
     editingItem = item;
+    resetAdditionalPhotos();
     elements.newsForm.reset();
     elements.title.value = item.title || "";
     elements.date.value = item.date || "";
@@ -331,6 +341,8 @@
     elements.editorPanel.hidden = false;
     window.SiteAdmin.setDirty("news", false);
     updatePreview();
+    renderAdditionalLoading();
+    await loadAdditionalPhotos(item.id);
     elements.editorPanel.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
@@ -339,6 +351,7 @@
       return;
     }
     editingItem = null;
+    resetAdditionalPhotos();
     elements.editorPanel.hidden = true;
     elements.newsForm.reset();
     clearPreviewObjectUrl();
@@ -398,6 +411,247 @@
     }
   }
 
+  function resetAdditionalPhotos() {
+    additionalLoadToken += 1;
+    additionalPhotos.forEach((photo) => {
+      if (photo.kind === "new" && photo.previewUrl) {
+        URL.revokeObjectURL(photo.previewUrl);
+      }
+    });
+    additionalPhotos = [];
+    elements.additionalImages.value = "";
+    renderAdditionalPhotos();
+  }
+
+  function renderAdditionalLoading() {
+    elements.additionalPhotos.replaceChildren(
+      createStateBlock("Загружаем дополнительные фотографии…", "additional-photo-state")
+    );
+  }
+
+  async function loadAdditionalPhotos(newsId) {
+    const token = ++additionalLoadToken;
+    const { data, error } = await client
+      .from("news_photos")
+      .select("id,news_id,image_url,image_path,caption,alt_text,sort_order,created_at")
+      .eq("news_id", newsId)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
+
+    if (token !== additionalLoadToken || !editingItem || String(editingItem.id) !== String(newsId)) {
+      return;
+    }
+
+    if (error) {
+      additionalPhotos = [];
+      elements.additionalPhotos.replaceChildren(
+        createStateBlock(
+          isMissingNewsPhotosTable(error)
+            ? "Дополнительные фотографии недоступны. Сначала примените миграцию news-multiple-photos.sql."
+            : readableError(error, "Не удалось загрузить дополнительные фотографии."),
+          "additional-photo-state additional-photo-state-error"
+        )
+      );
+      elements.additionalImages.disabled = true;
+      return;
+    }
+
+    elements.additionalImages.disabled = false;
+    additionalPhotos = (Array.isArray(data) ? data : []).map((photo) => ({
+      kind: "existing",
+      id: photo.id,
+      newsId: photo.news_id,
+      imageUrl: photo.image_url,
+      imagePath: photo.image_path,
+      caption: photo.caption || "",
+      altText: photo.alt_text || "",
+      createdAt: photo.created_at
+    }));
+    renderAdditionalPhotos();
+  }
+
+  function handleAdditionalImages() {
+    const files = Array.from(elements.additionalImages.files || []);
+    elements.additionalImages.value = "";
+    if (files.length === 0) {
+      return;
+    }
+
+    if (additionalPhotos.length + files.length > MAX_ADDITIONAL_PHOTOS) {
+      showMessage(`Можно добавить не более ${MAX_ADDITIONAL_PHOTOS} дополнительных фотографий.`, "error");
+      return;
+    }
+
+    for (const file of files) {
+      const validationError = validateImage(file);
+      if (validationError) {
+        showMessage(`${file.name}: ${validationError}`, "error");
+        return;
+      }
+    }
+
+    files.forEach((file) => {
+      additionalPhotos.push({
+        kind: "new",
+        key: `new-${++additionalPhotoKey}`,
+        file,
+        previewUrl: URL.createObjectURL(file),
+        caption: "",
+        altText: ""
+      });
+    });
+    window.SiteAdmin.setDirty("news", true);
+    renderAdditionalPhotos();
+  }
+
+  function renderAdditionalPhotos() {
+    if (!elements.additionalPhotos) {
+      return;
+    }
+
+    const remaining = MAX_ADDITIONAL_PHOTOS - additionalPhotos.length;
+    elements.additionalImages.disabled = remaining === 0;
+    elements.additionalImagesHelp.textContent = remaining > 0
+      ? `Добавлено: ${additionalPhotos.length} из ${MAX_ADDITIONAL_PHOTOS}. Можно выбрать ещё ${remaining}.`
+      : `Добавлено максимальное количество: ${MAX_ADDITIONAL_PHOTOS}.`;
+
+    if (additionalPhotos.length === 0) {
+      elements.additionalPhotos.replaceChildren(
+        createStateBlock("Дополнительных фотографий пока нет.", "additional-photo-state")
+      );
+      return;
+    }
+
+    const fragment = document.createDocumentFragment();
+    additionalPhotos.forEach((photo, index) => fragment.append(createAdditionalPhotoEditor(photo, index)));
+    elements.additionalPhotos.replaceChildren(fragment);
+  }
+
+  function createAdditionalPhotoEditor(photo, index) {
+    const card = document.createElement("article");
+    card.className = "additional-photo-item";
+
+    const imageWrap = document.createElement("div");
+    imageWrap.className = "additional-photo-preview";
+    const image = document.createElement("img");
+    image.src = photo.kind === "new" ? photo.previewUrl : resolveAdminImageUrl(photo.imageUrl);
+    image.alt = "";
+    image.addEventListener("error", () => {
+      imageWrap.textContent = "Не удалось показать фото";
+    }, { once: true });
+    imageWrap.append(image);
+
+    const fields = document.createElement("div");
+    fields.className = "additional-photo-fields";
+    const number = document.createElement("b");
+    number.textContent = `Фотография ${index + 1}`;
+
+    const captionLabel = document.createElement("label");
+    captionLabel.textContent = "Подпись";
+    const caption = document.createElement("input");
+    caption.type = "text";
+    caption.maxLength = 500;
+    caption.value = photo.caption;
+    caption.addEventListener("input", () => {
+      photo.caption = caption.value;
+      window.SiteAdmin.setDirty("news", true);
+    });
+    captionLabel.append(caption);
+
+    const altLabel = document.createElement("label");
+    altLabel.textContent = "Описание для доступности";
+    const altText = document.createElement("input");
+    altText.type = "text";
+    altText.maxLength = 300;
+    altText.value = photo.altText;
+    altText.addEventListener("input", () => {
+      photo.altText = altText.value;
+      window.SiteAdmin.setDirty("news", true);
+    });
+    altLabel.append(altText);
+
+    const actions = document.createElement("div");
+    actions.className = "additional-photo-actions";
+    actions.append(
+      createPhotoAction("↑", "Переместить фотографию выше", index === 0, () => moveAdditionalPhoto(index, -1)),
+      createPhotoAction("↓", "Переместить фотографию ниже", index === additionalPhotos.length - 1, () => moveAdditionalPhoto(index, 1)),
+      createPhotoAction("Удалить", "Удалить фотографию", false, () => void removeAdditionalPhoto(photo))
+    );
+
+    fields.append(number, captionLabel, altLabel, actions);
+    card.append(imageWrap, fields);
+    return card;
+  }
+
+  function createPhotoAction(text, label, disabled, action) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = text === "Удалить"
+      ? "button button-danger button-small"
+      : "button button-secondary button-small";
+    button.textContent = text;
+    button.setAttribute("aria-label", label);
+    button.disabled = disabled;
+    button.addEventListener("click", action);
+    return button;
+  }
+
+  function moveAdditionalPhoto(index, direction) {
+    const nextIndex = index + direction;
+    if (nextIndex < 0 || nextIndex >= additionalPhotos.length) {
+      return;
+    }
+    const selected = additionalPhotos[index];
+    additionalPhotos[index] = additionalPhotos[nextIndex];
+    additionalPhotos[nextIndex] = selected;
+    window.SiteAdmin.setDirty("news", true);
+    renderAdditionalPhotos();
+  }
+
+  async function removeAdditionalPhoto(photo) {
+    if (photo.kind === "new") {
+      URL.revokeObjectURL(photo.previewUrl);
+      additionalPhotos = additionalPhotos.filter((item) => item !== photo);
+      window.SiteAdmin.setDirty("news", true);
+      renderAdditionalPhotos();
+      return;
+    }
+
+    if (busy || !window.confirm("Удалить эту дополнительную фотографию?")) {
+      return;
+    }
+
+    setBusy(true, elements.saveButton, "Удаляем…");
+    try {
+      const { error } = await client
+        .from("news_photos")
+        .delete()
+        .eq("id", photo.id)
+        .eq("news_id", editingItem.id);
+      if (error) {
+        throw error;
+      }
+
+      additionalPhotos = additionalPhotos.filter((item) => item !== photo);
+      renderAdditionalPhotos();
+
+      if (photo.imagePath) {
+        const { error: storageError } = await client.storage
+          .from(STORAGE_BUCKET)
+          .remove([photo.imagePath]);
+        if (storageError) {
+          showMessage("Фотография удалена из новости, но файл не удалось удалить из хранилища.", "error");
+          return;
+        }
+      }
+      showMessage("Дополнительная фотография удалена.", "success");
+    } catch (error) {
+      showMessage(readableError(error, "Не удалось удалить дополнительную фотографию."), "error");
+    } finally {
+      setBusy(false, elements.saveButton, "Сохранить");
+    }
+  }
+
   async function saveNews(event) {
     event.preventDefault();
     if (!client || !currentUser || busy || !elements.newsForm.reportValidity()) {
@@ -423,6 +677,10 @@
     hideMessage();
 
     let uploadedPath = "";
+    let newsSaved = false;
+    let additionalRowsCreated = false;
+    let coverCleanupWarning = false;
+    const uploadedAdditionalPaths = [];
     let imageUrl = editingItem ? editingItem.image_url : "";
     let imagePath = editingItem ? editingItem.image_path : null;
 
@@ -484,27 +742,97 @@
       }
 
       const previousImagePath = editingItem ? editingItem.image_path : null;
-      window.SiteAdmin.setDirty("news", false);
-      closeEditor(true);
-      await loadNews();
+      const savedNews = saveResult.data;
+      newsSaved = true;
 
       if (uploadedPath && previousImagePath && previousImagePath !== uploadedPath) {
         const { error: removeOldError } = await client.storage
           .from(STORAGE_BUCKET)
           .remove([previousImagePath]);
+        coverCleanupWarning = Boolean(removeOldError);
+      }
 
-        if (removeOldError) {
-          showMessage("Новость сохранена, но старую фотографию не удалось удалить из хранилища.", "error");
-          return;
+      const newPhotos = additionalPhotos.filter((photo) => photo.kind === "new");
+      const newPhotoRows = [];
+      for (const photo of newPhotos) {
+        const preparedFile = await prepareImage(photo.file);
+        const newPath = createStoragePath(preparedFile.type, "additional");
+        const { error: photoUploadError } = await client.storage
+          .from(STORAGE_BUCKET)
+          .upload(newPath, preparedFile, {
+            cacheControl: "31536000",
+            contentType: preparedFile.type,
+            upsert: false
+          });
+        if (photoUploadError) {
+          throw photoUploadError;
         }
+
+        uploadedAdditionalPaths.push(newPath);
+        const { data: photoUrlData } = client.storage.from(STORAGE_BUCKET).getPublicUrl(newPath);
+        newPhotoRows.push({
+          news_id: savedNews.id,
+          image_url: photoUrlData.publicUrl,
+          image_path: newPath,
+          caption: photo.caption.trim() || null,
+          alt_text: photo.altText.trim() || null,
+          sort_order: additionalPhotos.indexOf(photo)
+        });
+      }
+
+      if (newPhotoRows.length > 0) {
+        const { error: insertPhotosError } = await client.from("news_photos").insert(newPhotoRows);
+        if (insertPhotosError) {
+          throw insertPhotosError;
+        }
+        additionalRowsCreated = true;
+      }
+
+      const existingPhotos = additionalPhotos.filter((photo) => photo.kind === "existing");
+      for (const photo of existingPhotos) {
+        const { error: updatePhotoError } = await client
+          .from("news_photos")
+          .update({
+            caption: photo.caption.trim() || null,
+            alt_text: photo.altText.trim() || null,
+            sort_order: additionalPhotos.indexOf(photo)
+          })
+          .eq("id", photo.id)
+          .eq("news_id", savedNews.id);
+        if (updatePhotoError) {
+          throw updatePhotoError;
+        }
+      }
+
+      window.SiteAdmin.setDirty("news", false);
+      closeEditor(true);
+      await loadNews();
+
+      if (coverCleanupWarning) {
+        showMessage("Новость сохранена, но старую обложку не удалось удалить из хранилища.", "error");
+        return;
       }
 
       showMessage("Новость сохранена.", "success");
     } catch (error) {
-      if (uploadedPath) {
+      if (!newsSaved && uploadedPath) {
         await client.storage.from(STORAGE_BUCKET).remove([uploadedPath]);
       }
-      showMessage(readableError(error, "Не удалось сохранить новость."), "error");
+      if (!additionalRowsCreated && uploadedAdditionalPaths.length > 0) {
+        await client.storage.from(STORAGE_BUCKET).remove(uploadedAdditionalPaths);
+      }
+
+      if (newsSaved) {
+        window.SiteAdmin.setDirty("news", false);
+        closeEditor(true);
+        await loadNews();
+        showMessage(
+          `Основные данные новости сохранены, но дополнительные фотографии обработаны не полностью: ${readableError(error, "неизвестная ошибка")}`,
+          "error"
+        );
+      } else {
+        showMessage(readableError(error, "Не удалось сохранить новость."), "error");
+      }
     } finally {
       setBusy(false, elements.saveButton, "Сохранить");
     }
@@ -532,16 +860,28 @@
     hideMessage();
 
     try {
+      const { data: relatedPhotos, error: photosError } = await client
+        .from("news_photos")
+        .select("image_path")
+        .eq("news_id", item.id);
+      if (photosError && !isMissingNewsPhotosTable(photosError)) {
+        throw photosError;
+      }
+
       const { error } = await client.from("news").delete().eq("id", item.id);
       if (error) {
         throw error;
       }
 
+      const imagePaths = Array.from(new Set([
+        item.image_path,
+        ...(relatedPhotos || []).map((photo) => photo.image_path)
+      ].filter(Boolean)));
       let imageWarning = false;
-      if (item.image_path) {
+      if (imagePaths.length > 0) {
         const { error: imageError } = await client.storage
           .from(STORAGE_BUCKET)
-          .remove([item.image_path]);
+          .remove(imagePaths);
         imageWarning = Boolean(imageError);
       }
 
@@ -552,7 +892,7 @@
       await loadNews();
       showMessage(
         imageWarning
-          ? "Новость удалена, но фотографию не удалось удалить из хранилища."
+          ? "Новость удалена, но один или несколько файлов не удалось удалить из хранилища."
           : "Новость удалена.",
         imageWarning ? "error" : "success"
       );
@@ -640,11 +980,12 @@
     });
   }
 
-  function createStoragePath(type) {
+  function createStoragePath(type, folder) {
     const randomPart = window.crypto && typeof window.crypto.randomUUID === "function"
       ? window.crypto.randomUUID()
       : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    return `${currentUser.id}/${Date.now()}-${randomPart}.${extensionForType(type)}`;
+    const folderPrefix = folder ? `${folder}/` : "";
+    return `${currentUser.id}/${folderPrefix}${Date.now()}-${randomPart}.${extensionForType(type)}`;
   }
 
   function extensionForType(type) {
@@ -818,5 +1159,14 @@
     }
 
     return error.message || fallback;
+  }
+
+  function isMissingNewsPhotosTable(error) {
+    const code = error && typeof error.code === "string" ? error.code : "";
+    const message = error && typeof error.message === "string" ? error.message.toLowerCase() : "";
+    return code === "42P01"
+      || code === "PGRST205"
+      || (message.includes("news_photos")
+        && (message.includes("does not exist") || message.includes("schema cache")));
   }
 })();

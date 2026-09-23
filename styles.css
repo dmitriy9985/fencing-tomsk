@@ -1140,8 +1140,7 @@ body.news-detail-mode .news-page-section {
   background: var(--white);
 }
 
-.event-list,
-.results-list {
+.event-list {
   border-top: 1px solid var(--line);
 }
 
@@ -1256,43 +1255,281 @@ body.news-detail-mode .news-page-section {
   background: var(--paper);
 }
 
-.result-row {
+.results-heading {
+  margin-bottom: 34px;
+}
+
+.results-filters {
+  display: flex;
+  align-items: end;
+  padding: 20px 0;
+  gap: 14px;
+  border-block: 1px solid var(--line);
+}
+
+.results-filters label {
   display: grid;
-  grid-template-columns: 38px 120px minmax(0, 1fr) minmax(160px, 230px);
-  align-items: start;
-  padding: 32px 0;
-  gap: 24px;
-  border-bottom: 1px solid var(--line);
-}
-
-.result-row time {
-  color: var(--red);
-  font-size: 12px;
+  min-width: min(240px, 100%);
+  gap: 7px;
+  color: var(--navy);
+  font-size: 11px;
   font-weight: 900;
-  letter-spacing: .05em;
+  letter-spacing: .1em;
+  text-transform: uppercase;
 }
 
-.result-row h3 {
-  margin: -4px 0 10px;
-  font-size: clamp(20px, 2vw, 28px);
-  line-height: 1.2;
-  letter-spacing: -.025em;
+.results-filters select {
+  min-height: 46px;
+  padding: 0 42px 0 14px;
+  color: var(--navy);
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 0;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
-.result-row p {
-  max-width: 680px;
+.results-reset {
+  min-height: 46px;
+  margin-left: auto;
+  padding-inline: 0;
+  color: var(--red);
+  background: transparent;
+  border: 0;
+  font-weight: 800;
+}
+
+.results-reset[hidden] {
+  display: none;
+}
+
+.results-count {
+  min-height: 20px;
+  margin: 18px 0 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.results-list {
+  display: grid;
+  gap: 24px;
+}
+
+.result-tournament {
+  display: grid;
+  grid-template-columns: 154px minmax(0, 1fr);
+  min-width: 0;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--navy);
+}
+
+.result-tournament-date {
+  display: grid;
+  place-items: center;
+  min-height: 176px;
+  padding: 24px 18px;
+  color: var(--white);
+  text-align: center;
+  background: var(--red);
+}
+
+.result-tournament-date time {
+  display: grid;
+  max-width: 100%;
+  gap: 3px;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.result-tournament-date time b {
+  font-size: 30px;
+  letter-spacing: -.05em;
+  line-height: 1;
+}
+
+.result-tournament-date time span,
+.result-tournament-date time small {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.result-tournament-main {
+  min-width: 0;
+  padding: clamp(28px, 4vw, 48px);
+}
+
+.result-eyebrow {
   margin: 0;
+  color: var(--blue);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .12em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+.result-tournament-main > h3 {
+  max-width: 890px;
+  margin: 9px 0 0;
+  font-size: clamp(26px, 3vw, 42px);
+  line-height: 1.08;
+  letter-spacing: -.035em;
+  overflow-wrap: anywhere;
+}
+
+.result-metadata {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  gap: 8px 24px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.result-metadata b {
+  color: var(--navy);
+}
+
+.result-groups {
+  display: grid;
+  margin-top: 30px;
+  gap: 18px;
+}
+
+.result-group {
+  padding-top: 17px;
+  border-top: 1px solid var(--line);
+}
+
+.result-group h4 {
+  margin: 0 0 13px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.5;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.result-places {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: 8px;
+  list-style: none;
+}
+
+.result-places > li {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: start;
+  min-width: 0;
+  gap: 12px;
+}
+
+.result-places b {
+  display: block;
+  padding-top: 7px;
+  font-size: 16px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.place-badge {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  color: var(--white);
+  background: var(--navy);
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.place-1 {
+  color: #5c4300;
+  background: #f0c954;
+}
+
+.place-2 {
+  color: #344056;
+  background: #d8dee8;
+}
+
+.place-3 {
+  color: #58311d;
+  background: #d99a70;
+}
+
+.result-more,
+.team-members {
+  margin-top: 12px;
+}
+
+.result-more summary,
+.team-members summary {
+  width: fit-content;
+  color: var(--blue);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.result-more .result-places {
+  margin-top: 12px;
+}
+
+.team-members ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.result-legacy-text,
+.result-no-places {
+  max-width: 780px;
+  margin: 28px 0 0;
   color: var(--muted);
   line-height: 1.65;
   white-space: pre-line;
 }
 
-.result-category {
-  color: var(--blue);
-  font-size: 12px;
-  font-weight: 800;
-  line-height: 1.5;
-  text-transform: uppercase;
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 28px;
+  gap: 10px 24px;
+}
+
+.result-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  color: var(--navy);
+  border-bottom: 1px solid var(--red);
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.result-action span {
+  color: var(--red);
+  font-size: 18px;
+}
+
+.results-empty {
+  border: 1px solid var(--line);
+  background: var(--white);
 }
 
 .coaches-section {
@@ -2110,12 +2347,13 @@ body.news-detail-mode .news-page-section {
     margin: 0 8px 12px 0;
   }
 
-  .result-row {
-    grid-template-columns: 38px 100px minmax(0, 1fr);
+  .result-tournament {
+    grid-template-columns: 126px minmax(0, 1fr);
   }
 
-  .result-category {
-    grid-column: 3;
+  .result-tournament-date {
+    min-height: 150px;
+    padding-inline: 12px;
   }
 
   .gallery-grid {
@@ -2474,15 +2712,94 @@ body.news-detail-mode .news-page-section {
     margin: 0 10px 12px;
   }
 
-  .result-row {
-    grid-template-columns: 30px 1fr;
-    gap: 12px 14px;
+  .results-heading {
+    margin-bottom: 26px;
   }
 
-  .result-row time,
-  .result-row > div,
-  .result-category {
-    grid-column: 2;
+  .results-heading,
+  .results-heading > *,
+  .result-tournament,
+  .result-tournament-main,
+  .result-group {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .results-heading h2 {
+    max-width: 100%;
+    font-size: clamp(28px, 8vw, 34px);
+    overflow-wrap: anywhere;
+  }
+
+  .results-filters {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .results-filters label {
+    min-width: 0;
+  }
+
+  .results-reset {
+    align-self: flex-start;
+    min-height: 36px;
+    margin-left: 0;
+  }
+
+  .results-list {
+    gap: 16px;
+  }
+
+  .result-tournament {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .result-tournament-date {
+    place-items: start;
+    min-height: 0;
+    padding: 15px 18px;
+    text-align: left;
+  }
+
+  .result-tournament-date time {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 13px;
+  }
+
+  .result-tournament-date time b,
+  .result-tournament-date time span,
+  .result-tournament-date time small {
+    display: inline;
+    font: inherit;
+  }
+
+  .result-tournament-main {
+    padding: 24px 18px 28px;
+  }
+
+  .result-tournament-main > h3 {
+    font-size: clamp(25px, 8vw, 34px);
+  }
+
+  .result-metadata {
+    display: grid;
+    gap: 7px;
+  }
+
+  .result-groups {
+    margin-top: 24px;
+  }
+
+  .result-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .result-action {
+    max-width: 100%;
+    overflow-wrap: anywhere;
   }
 
   .coaches-grid {

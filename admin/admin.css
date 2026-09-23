@@ -798,6 +798,89 @@ input[type="file"] {
   gap: 8px;
 }
 
+[data-admin-section="results"] .editor-layout {
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, .55fr);
+}
+
+.result-entries-editor {
+  display: grid;
+  margin-top: 8px;
+  padding-top: 20px;
+  gap: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.result-entries-heading,
+.result-entry-editor-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.result-entries-heading h3,
+.result-entry-editor-heading h4 {
+  margin: 0;
+  color: var(--navy);
+}
+
+.result-entries-heading h3 {
+  font-size: 18px;
+}
+
+.result-entries-heading p {
+  max-width: 590px;
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.result-entry-list {
+  display: grid;
+  gap: 12px;
+}
+
+.result-entry-editor {
+  display: grid;
+  padding: 16px;
+  gap: 14px;
+  background: #f7f9fc;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--blue);
+  border-radius: 14px;
+}
+
+.result-entry-editor-heading h4 {
+  font-size: 15px;
+}
+
+.result-entry-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.icon-button-small {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  font-size: 17px;
+}
+
+.result-entry-grid {
+  grid-template-columns: minmax(80px, .35fr) minmax(200px, 1.4fr) minmax(130px, .7fr);
+}
+
+.result-entry-grid-secondary {
+  grid-template-columns: minmax(180px, 1fr) minmax(160px, .7fr);
+}
+
+.result-team-members-field[hidden] {
+  display: none;
+}
+
 .gallery-photos-panel {
   margin-top: 24px;
   border-top: 5px solid var(--blue);
@@ -998,6 +1081,15 @@ input[type="file"] {
     grid-template-columns: 1fr;
   }
 
+  [data-admin-section="results"] .editor-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .result-entry-grid,
+  .result-entry-grid-secondary {
+    grid-template-columns: 1fr 1fr;
+  }
+
   .preview-wrap {
     position: static;
     margin-top: 0;
@@ -1116,6 +1208,21 @@ input[type="file"] {
   .record-row,
   .upload-panel,
   .photo-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .result-entries-heading,
+  .result-entry-editor-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .result-entry-controls {
+    justify-content: flex-start;
+  }
+
+  .result-entry-grid,
+  .result-entry-grid-secondary {
     grid-template-columns: 1fr;
   }
 

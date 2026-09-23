@@ -273,11 +273,26 @@
               </div>
               <div class="editor-layout">
                 <form id="results-form" class="form-stack">
-                  <label>Дата соревнования<input id="results-date" type="date" required></label>
-                  <label>Подпись даты<input id="results-date-label" type="text" maxlength="80" placeholder="Необязательно"></label>
-                  <label>Название<input id="results-title" type="text" maxlength="200" required></label>
-                  <label>Результат<textarea id="results-text" maxlength="5000" rows="8" required></textarea></label>
-                  <label>Категория<input id="results-category" type="text" maxlength="200"></label>
+                  <div class="form-grid two-columns">
+                    <label>Дата соревнования<input id="results-date" type="date" required></label>
+                    <label>Подпись даты<input id="results-date-label" type="text" maxlength="80" placeholder="Например, 15–18.11.2025"></label>
+                  </div>
+                  <label>Название соревнования<input id="results-title" type="text" maxlength="200" required></label>
+                  <div class="form-grid two-columns">
+                    <label>Город<input id="results-city" type="text" maxlength="200" placeholder="Необязательно"></label>
+                    <label>Общая подпись категории<input id="results-category" type="text" maxlength="200" placeholder="Например, Юноши, шпага"></label>
+                  </div>
+                  <label>Событие календаря<select id="results-event"><option value="">Не связано с календарём</option></select></label>
+                  <label>Новость о соревновании<select id="results-news"><option value="">Без связанной новости</option></select></label>
+                  <label>Ссылка на официальный протокол<input id="results-protocol" type="url" maxlength="2048" placeholder="https://..."></label>
+                  <section class="result-entries-editor" aria-labelledby="results-entries-title">
+                    <div class="result-entries-heading">
+                      <div><h3 id="results-entries-title">Призовые места</h3><p>Добавьте личные или командные результаты. Места ниже третьего также поддерживаются.</p></div>
+                      <button id="results-add-entry" class="button button-secondary button-small" type="button">+ Добавить результат</button>
+                    </div>
+                    <div id="results-entries" class="result-entry-list"></div>
+                  </section>
+                  <label>Примечание / старый текст<textarea id="results-text" maxlength="5000" rows="4" placeholder="Необязательно. Используется как fallback, если структурированных результатов нет."></textarea></label>
                   <label class="checkbox-label">
                     <input id="results-published" type="checkbox">
                     <span><b>Опубликовано</b><small>Выключите, чтобы сохранить результат как черновик.</small></span>

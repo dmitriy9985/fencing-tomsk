@@ -12,6 +12,7 @@
     event: document.getElementById("results-event"), news: document.getElementById("results-news"),
     protocol: document.getElementById("results-protocol"), entries: document.getElementById("results-entries"),
     addEntry: document.getElementById("results-add-entry"), text: document.getElementById("results-text"),
+    otherParticipants: document.getElementById("results-other-participants"),
     published: document.getElementById("results-published"), save: document.getElementById("results-save-button"),
     cancel: document.getElementById("results-cancel-button"), refresh: document.getElementById("results-refresh-button"),
     sort: document.getElementById("results-sort"), list: document.getElementById("results-list"),
@@ -59,7 +60,7 @@
     try {
       const [resultsResponse, eventsResponse, newsResponse] = await Promise.all([
         client.from("competition_results").select(`
-          id,competition_date,date_label,title,result_text,category,city,event_id,news_id,protocol_url,
+          id,competition_date,date_label,title,result_text,other_participants,category,city,event_id,news_id,protocol_url,
           published,created_at,updated_at,
           entries:competition_result_entries(
             id,place,participant_name,weapon,age_category,competition_format,team_members,sort_order,created_at,updated_at
@@ -183,6 +184,7 @@
     elements.news.value = item.news_id == null ? "" : String(item.news_id);
     elements.protocol.value = item.protocol_url || "";
     elements.text.value = item.result_text || "";
+    elements.otherParticipants.value = item.other_participants || "";
     elements.published.checked = Boolean(item.published);
     formEntries = item.entries.map((entry) => createFormEntry(entry));
     renderEntryEditor();
@@ -380,6 +382,7 @@
       title: elements.title.value.trim(), city: elements.city.value.trim(), category: elements.category.value.trim(),
       event_id: optionalNumber(elements.event.value), news_id: optionalNumber(elements.news.value),
       protocol_url: elements.protocol.value.trim() || null, result_text: elements.text.value.trim(),
+      other_participants: elements.otherParticipants.value.trim() || null,
       published: elements.published.checked
     };
     setWorking(true, elements.save, "Сохраняем…");

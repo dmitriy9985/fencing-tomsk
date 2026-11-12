@@ -1446,8 +1446,8 @@ body.news-detail-mode .news-page-section {
   place-items: center;
   width: 36px;
   height: 36px;
-  color: var(--white);
-  background: var(--navy);
+  color: var(--ink);
+  background: var(--paper);
   border-radius: 50%;
   font-size: 14px;
   font-weight: 900;
@@ -1468,22 +1468,16 @@ body.news-detail-mode .news-page-section {
   background: #d99a70;
 }
 
-.result-more,
 .team-members {
   margin-top: 12px;
 }
 
-.result-more summary,
 .team-members summary {
   width: fit-content;
   color: var(--blue);
   cursor: pointer;
   font-size: 13px;
   font-weight: 800;
-}
-
-.result-more .result-places {
-  margin-top: 12px;
 }
 
 .team-members ul {

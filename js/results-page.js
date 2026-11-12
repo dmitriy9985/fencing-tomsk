@@ -255,21 +255,7 @@
     section.className = "result-group";
     const heading = document.createElement("h4");
     heading.textContent = groupTitle(entries[0]);
-    section.append(heading);
-
-    const podium = entries.filter((entry) => numberValue(entry.place) <= 3);
-    const other = entries.filter((entry) => numberValue(entry.place) > 3);
-    if (podium.length > 0) {
-      section.append(createPlaces(podium));
-    }
-    if (other.length > 0) {
-      const details = document.createElement("details");
-      details.className = "result-more";
-      const summary = document.createElement("summary");
-      summary.textContent = `Другие результаты (${other.length})`;
-      details.append(summary, createPlaces(other));
-      section.append(details);
-    }
+    section.append(heading, createPlaces(entries));
     return section;
   }
 
@@ -279,7 +265,9 @@
     entries.forEach((entry) => {
       const item = document.createElement("li");
       const badge = document.createElement("span");
-      badge.className = `place-badge place-${Math.min(numberValue(entry.place), 4)}`;
+      const place = numberValue(entry.place);
+      badge.className = "place-badge";
+      if (place >= 1 && place <= 3) badge.classList.add(`place-${place}`);
       badge.textContent = String(entry.place);
       const content = document.createElement("div");
       const name = document.createElement("b");

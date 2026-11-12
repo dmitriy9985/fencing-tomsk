@@ -1503,6 +1503,22 @@ body.news-detail-mode .news-page-section {
   white-space: pre-line;
 }
 
+.result-participants {
+  margin-top: 24px;
+}
+
+.result-participants h4 {
+  margin-bottom: 6px;
+}
+
+.result-participants p {
+  margin: 0;
+  color: var(--navy);
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
 .result-actions {
   display: flex;
   flex-wrap: wrap;

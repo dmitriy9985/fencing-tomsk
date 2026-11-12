@@ -41,6 +41,7 @@
         date_label,
         title,
         result_text,
+        other_participants,
         category,
         city,
         protocol_url,
@@ -162,6 +163,7 @@
     const visibleEntries = selectedWeapon
       ? item.entries.filter((entry) => entry.weapon === selectedWeapon)
       : item.entries;
+    const otherParticipants = getOtherParticipants(item);
     if (visibleEntries.length > 0) {
       main.append(createGroups(visibleEntries));
     } else if (item.result_text) {
@@ -169,11 +171,21 @@
       legacy.className = "result-legacy-text";
       legacy.textContent = item.result_text;
       main.append(legacy);
-    } else {
+    } else if (otherParticipants.length === 0) {
       const noPlaces = document.createElement("p");
       noPlaces.className = "result-no-places";
       noPlaces.textContent = "Призовые места не указаны.";
       main.append(noPlaces);
+    }
+    if (otherParticipants.length > 0) {
+      const section = document.createElement("section");
+      section.className = "result-group result-participants";
+      const heading = document.createElement("h4");
+      heading.textContent = "Другие участники Томской области";
+      const names = document.createElement("p");
+      names.textContent = otherParticipants.join(", ");
+      section.append(heading, names);
+      main.append(section);
     }
 
     const actions = createActions(item);
@@ -182,6 +194,24 @@
     }
     article.append(dateBlock, main);
     return article;
+  }
+
+  function getOtherParticipants(item) {
+    const names = (item.other_participants || "").split(/[,\r\n]+/)
+      .map((name) => name.trim()).filter(Boolean);
+    if (names.length === 0) return names;
+
+    const nameKey = (name) => name.normalize().replace(/\s+/g, " ").toLocaleLowerCase("ru");
+    const listedNames = new Set(item.entries
+      .filter((entry) => entry.competition_format === "individual")
+      .map((entry) => nameKey((entry.participant_name || "").trim())));
+
+    return names.filter((name) => {
+      const key = nameKey(name);
+      if (listedNames.has(key)) return false;
+      listedNames.add(key);
+      return true;
+    });
   }
 
   function createMetadata(item) {

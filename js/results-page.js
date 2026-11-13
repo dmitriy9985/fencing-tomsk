@@ -264,11 +264,11 @@
     list.className = "result-places";
     entries.forEach((entry) => {
       const item = document.createElement("li");
-      const badge = document.createElement("span");
+      const placeLabel = document.createElement("span");
       const place = numberValue(entry.place);
-      badge.className = "place-badge";
-      if (place >= 1 && place <= 3) badge.classList.add(`place-${place}`);
-      badge.textContent = String(entry.place);
+      placeLabel.className = "result-place";
+      if (place >= 1 && place <= 3) placeLabel.classList.add("result-place-medal", `place-${place}`);
+      placeLabel.textContent = `${entry.place}-е место`;
       const content = document.createElement("div");
       const name = document.createElement("b");
       name.textContent = entry.participant_name || "Участник не указан";
@@ -288,7 +288,7 @@
         details.append(summary, memberList);
         content.append(details);
       }
-      item.append(badge, content);
+      item.append(placeLabel, content);
       list.append(item);
     });
     return list;

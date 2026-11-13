@@ -1427,45 +1427,66 @@ body.news-detail-mode .news-page-section {
 
 .result-places > li {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr);
   align-items: start;
   min-width: 0;
-  gap: 12px;
+  gap: 10px;
 }
 
 .result-places b {
   display: block;
-  padding-top: 7px;
+  padding: 4px 0;
   font-size: 16px;
   line-height: 1.35;
   overflow-wrap: anywhere;
 }
 
-.place-badge {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
+.result-place {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px;
   color: var(--ink);
-  background: var(--paper);
-  border-radius: 50%;
-  font-size: 14px;
-  font-weight: 900;
+  background: #e9eef5;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
 }
 
-.place-1 {
-  color: #5c4300;
-  background: #f0c954;
+.result-place-medal::before {
+  content: "";
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  mask: url("images/icons/medal.svg") center / contain no-repeat;
 }
 
-.place-2 {
-  color: #344056;
-  background: #d8dee8;
+.result-place.place-1 {
+  color: #795700;
+  background: #ffedba;
 }
 
-.place-3 {
-  color: #58311d;
-  background: #d99a70;
+.result-place.place-2 {
+  color: #4b586b;
+  background: #e1e7ef;
+}
+
+.result-place.place-3 {
+  color: #894a29;
+  background: #f5dfd0;
+}
+
+@media (max-width: 480px) {
+  .result-places > li {
+    gap: 8px;
+  }
+
+  .result-place {
+    padding-inline: 7px;
+    font-size: 12px;
+  }
 }
 
 .team-members {

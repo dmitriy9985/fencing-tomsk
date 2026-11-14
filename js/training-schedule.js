@@ -103,10 +103,9 @@
     list.replaceChildren(...days);
   }
 
-  function rangeFilter(week) {
-    const end = addDays(week, 6);
-    return "and(original_date.gte." + week + ",original_date.lte." + end + "),"
-      + "and(moved_date.gte." + week + ",moved_date.lte." + end + ")";
+  function rangeFilter(start, end = addDays(start, 6)) {
+    return "and(original_date.gte." + start + ",original_date.lte." + end + "),"
+      + "and(moved_date.gte." + start + ",moved_date.lte." + end + ")";
   }
 
   async function publicRead(table, extra = {}) {
@@ -141,10 +140,6 @@
       update();
     };
     picker.addEventListener("change", selectWeek);
-    root.querySelector("[data-training-today]")?.addEventListener("click", () => {
-      picker.value = today();
-      selectWeek();
-    });
     for (const button of root.querySelectorAll("[data-training-step]")) {
       button.addEventListener("click", () => {
         picker.value = addDays(validDay(picker.value) ? picker.value : today(), Number(button.dataset.trainingStep));
@@ -163,8 +158,10 @@
   const regularStatus = root.querySelector("[data-training-regular-status]");
   const list = root.querySelector("[data-training-list]");
   const status = root.querySelector("[data-training-status]");
-  const weekAlert = document.querySelector("[data-training-week-alert]");
-  const alertSummary = weekAlert.querySelector("[data-training-alert-summary]");
+  const picker = root.querySelector("[data-training-date]");
+  const range = root.querySelector("[data-training-range]");
+  const upcoming = root.querySelector("[data-training-upcoming]");
+  const shortDate = new Intl.DateTimeFormat("ru-RU", { timeZone: zone, day: "numeric", month: "short" });
   const periods = {
     "morning-1": "Утро", "morning-2": "Утро", afternoon: "День",
     "monday-evening": "Вечер", evening: "Вечер"
@@ -208,56 +205,83 @@
     regular.replaceChildren(...rows);
   }
 
-  function showChanges(week, slots, changes) {
-    const end = addDays(week, 6);
+  function showChanges(start, end, isUpcoming, slots, changes) {
     const byId = new Map(slots.map(slot => [slot.id, slot]));
+    const now = Date.now();
+    const inPeriod = (day, time) => day >= start && day <= end
+      && (!isUpcoming || timestamp(day, time) >= now);
     const lessons = [];
     for (const change of changes) {
       const slot = byId.get(change.slot_id);
       if (!slot || !["cancelled", "moved"].includes(change.status)) continue;
       const lesson = occurrence(slot, change.original_date, change);
-      const originalInWeek = lesson.day >= week && lesson.day <= end;
-      lessons.push({ lesson, sortTime: originalInWeek ? lesson.day + lesson.start : lesson.date + lesson.time });
+      const originalInPeriod = inPeriod(lesson.day, lesson.start);
+      const destinationInPeriod = inPeriod(lesson.date, lesson.time);
+      if (!originalInPeriod && !destinationInPeriod) continue;
+      // A move affects both time slots. Show it once, under its original date
+      // when that slot is in view. A cancellation belongs to the cancelled time.
+      const useOriginal = originalInPeriod && (lesson.status === "moved" || !destinationInPeriod);
+      const day = useOriginal ? lesson.day : lesson.date;
+      const time = useOriginal ? lesson.start : lesson.time;
+      lessons.push({ lesson, day, time });
     }
-    lessons.sort((a, b) => a.sortTime.localeCompare(b.sortTime));
+    lessons.sort((a, b) => a.day.localeCompare(b.day) || a.time.localeCompare(b.time));
 
-    let cancellations = 0;
-    for (const { lesson } of lessons) {
+    let previousDay;
+    let entries;
+    for (const { lesson, day } of lessons) {
+      if (day !== previousDay) {
+        const group = element("li", "", "training-change-group");
+        entries = element("ul", "", "training-change-entries");
+        group.append(element("h3", dayLabel(day)), entries);
+        list.append(group);
+        previousDay = day;
+      }
       const cancelled = lesson.status === "cancelled";
-      if (cancelled) cancellations++;
       const rescheduled = lesson.date !== lesson.day || lesson.time !== lesson.start;
-      const card = element("li", "", "training-change training-change-" + lesson.status);
-      const label = cancelled ? (rescheduled ? "Отменена после переноса" : "Отменена") : "Перенесена";
-      card.append(element("strong", label, "training-change-label"));
-      const times = element("dl", "", "training-change-times");
-      const addTime = (title, day, time) => {
-        const row = element("div");
-        row.append(element("dt", title), element("dd", dayLabel(day) + ", " + time));
-        times.append(row);
+      const row = element("li", "", "training-change training-change-" + lesson.status);
+      row.append(element("strong", cancelled ? "Отмена" : "Перенос", "training-change-label"));
+      const details = element("div", "", "training-change-details");
+      const times = element("div", "", "training-change-times");
+      const showTime = (tag, date, hours) => {
+        const time = element(tag);
+        if (date !== day) {
+          const format = date.slice(0, 4) === day.slice(0, 4) ? shortDate : weekFormat;
+          time.append(format.format(timestamp(date, "12:00")) + ", ");
+        }
+        time.append(element("span", hours, "training-change-hours"));
+        return time;
       };
-      addTime(rescheduled ? (cancelled ? "Изначально" : "Было") : "По расписанию",
-        lesson.day, lesson.start + "–" + lesson.end);
-      if (rescheduled) addTime(cancelled ? "Отменено" : "Стало", lesson.date, timeRange(lesson));
-      card.append(times);
-      if (lesson.reason) card.append(element("p", "Причина: " + lesson.reason, "training-change-reason"));
-      list.append(card);
+      const originalHours = lesson.start + "–" + lesson.end;
+      if (!cancelled) {
+        times.append(showTime("s", lesson.day, originalHours), element("span", "→", "training-change-arrow"));
+      }
+      times.append(showTime("strong", lesson.date, timeRange(lesson)));
+      details.append(times);
+      if (cancelled && rescheduled) {
+        const note = element("p", "После переноса с ", "training-change-note");
+        note.append(showTime("span", lesson.day, originalHours));
+        details.append(note);
+      }
+      if (lesson.reason) details.append(element("p", lesson.reason, "training-change-note"));
+      row.append(details);
+      entries.append(row);
     }
-    status.textContent = lessons.length ? "" : "На этой неделе изменений нет.";
-    if (lessons.length && week === weekStart(today())) {
-      const moves = lessons.length - cancellations;
-      alertSummary.textContent = [
-        cancellations ? "Отменено: " + cancellations : "",
-        moves ? "Перенесено: " + moves : ""
-      ].filter(Boolean).join(" · ");
-      weekAlert.hidden = false;
-    }
+    const empty = isUpcoming ? "На ближайшие 14 дней изменений нет." : "На этой неделе изменений нет.";
+    status.textContent = lessons.length ? "" : empty;
   }
 
   let request = 0;
   let slotsRequest;
-  const refresh = bindWeek(root, async (week) => {
+  async function refresh(selectedDay) {
+    const isUpcoming = !selectedDay;
+    const start = isUpcoming ? today() : weekStart(selectedDay);
+    const end = addDays(start, isUpcoming ? 13 : 6);
     const token = ++request;
-    weekAlert.hidden = true;
+    picker.value = selectedDay || start;
+    upcoming.setAttribute("aria-pressed", String(isUpcoming));
+    const dates = weekFormat.formatRange(timestamp(start, "12:00"), timestamp(end, "12:00"));
+    range.textContent = (isUpcoming ? "Ближайшие 14 дней · " : "Неделя · ") + dates;
     status.textContent = "Загружаем изменения…";
     list.replaceChildren();
     slotsRequest ||= publicRead("training_slots").then(slots => {
@@ -273,14 +297,34 @@
     try {
       const [slots, changes] = await Promise.all([
         slotsRequest,
-        publicRead("training_exceptions", { or: "(" + rangeFilter(week) + ")" })
+        publicRead("training_exceptions", { or: "(" + rangeFilter(start, end) + ")" })
       ]);
       if (token !== request) return;
-      showChanges(week, slots, changes);
+      showChanges(start, end, isUpcoming, slots, changes);
     } catch {
       if (token !== request) return;
-      status.textContent = "Не удалось загрузить изменения. Обновите страницу или выберите неделю ещё раз.";
+      status.textContent = "Не удалось проверить актуальные изменения. Попробуйте обновить страницу.";
     }
+  }
+
+  function selectPeriod(day) {
+    const url = new URL(location.href);
+    if (day) url.searchParams.set("date", day);
+    else url.searchParams.delete("date");
+    history.replaceState(history.state, "", url);
+    refresh(day);
+  }
+
+  picker.addEventListener("change", () => {
+    if (validDay(picker.value)) selectPeriod(picker.value);
   });
-  refresh();
+  upcoming.addEventListener("click", () => selectPeriod(null));
+  root.querySelectorAll("[data-training-step]").forEach(button => {
+    button.addEventListener("click", () => {
+      const from = validDay(picker.value) ? picker.value : today();
+      selectPeriod(addDays(from, Number(button.dataset.trainingStep)));
+    });
+  });
+  const requestedDay = new URLSearchParams(location.search).get("date");
+  refresh(validDay(requestedDay) ? requestedDay : null);
 })();

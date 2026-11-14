@@ -25,36 +25,34 @@
       <div class="wrap page-hero-inner">
         <div>
           <h1>Расписание тренировок</h1>
-          <div aria-live="polite">
-            <a class="training-week-alert" href="#training-changes-title" data-training-week-alert hidden>
-              <span><strong>Есть изменения в расписании на этой неделе</strong><br><span data-training-alert-summary></span></span>
-              <span aria-hidden="true">→</span>
-            </a>
-          </div>
           <p>Все тренировки проходят в одном зале. Время указано по Томску.</p>
         </div>
         <img class="page-hero-icon" src="/images/icons/calendar.svg" alt="">
       </div>
     </section>
     <div class="wrap training-overview" data-training-public>
+      <section class="training-panel training-panel-changes" aria-labelledby="training-changes-title">
+        <div class="training-changes-header">
+          <div>
+            <h2 id="training-changes-title">Изменения в расписании</h2>
+            <p class="training-range" data-training-range aria-live="polite"></p>
+          </div>
+          <div class="training-view-controls">
+            <button type="button" class="training-control training-upcoming" data-training-upcoming aria-pressed="true">Ближайшие</button>
+            <div class="training-week-picker" role="group" aria-label="Просмотр по неделям">
+              <button type="button" class="training-control" data-training-step="-7" aria-label="Предыдущая неделя">←</button>
+              <input type="date" data-training-date aria-label="Выбрать дату недели">
+              <button type="button" class="training-control" data-training-step="7" aria-label="Следующая неделя">→</button>
+            </div>
+          </div>
+        </div>
+        <p class="training-week-status" data-training-status role="status">Загружаем изменения…</p>
+        <ul class="training-changes" data-training-list></ul>
+      </section>
       <section class="training-panel" aria-labelledby="training-regular-title">
         <h2 id="training-regular-title">Постоянное расписание</h2>
         <p class="training-status" data-training-regular-status role="status">Загружаем расписание…</p>
         <dl class="training-regular" data-training-regular></dl>
-      </section>
-      <section class="training-panel training-panel-changes" aria-labelledby="training-changes-title">
-        <h2 id="training-changes-title" tabindex="-1">Изменения в расписании</h2>
-        <div class="training-week-header">
-          <strong data-training-week-range aria-live="polite"></strong>
-          <button type="button" class="training-control training-today" data-training-today>Сегодня</button>
-        </div>
-        <div class="training-week-picker">
-          <button type="button" class="training-control" data-training-step="-7" aria-label="Предыдущая неделя">←</button>
-          <input type="date" data-training-date aria-label="Выбрать дату">
-          <button type="button" class="training-control" data-training-step="7" aria-label="Следующая неделя">→</button>
-        </div>
-        <p class="training-week-status" data-training-status role="status">Загружаем изменения…</p>
-        <ul class="training-changes" data-training-list></ul>
       </section>
       <noscript><p>Для просмотра расписания включите JavaScript.</p></noscript>
     </div>

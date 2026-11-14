@@ -81,12 +81,18 @@
       if (index === 6) card.append(element("p", "Боевая практика. Время уточняется отдельно.", "training-day-note"));
       for (const lesson of occurrences(slots, changes, day)) {
         const row = element("div", "", "training-entry");
-        const label = { regular: "", cancelled: "Отменена", moved: "Перенесена" }[lesson.status];
+        const wasRescheduled = lesson.date !== lesson.day || lesson.time !== lesson.start;
+        const label = {
+          regular: "",
+          cancelled: wasRescheduled ? "Отменена после переноса" : "Отменена",
+          moved: "Перенесена"
+        }[lesson.status];
         row.append(element("strong", lesson.date === day ? timeRange(lesson) : lesson.start + "–" + lesson.end));
         if (label) row.append(element("span", label, "training-state training-state-" + lesson.status));
-        if (lesson.status === "moved" || lesson.date !== lesson.day || lesson.time !== lesson.start) {
-          row.append(element("p", "Было: " + dayLabel(lesson.day) + ", " + lesson.start + "–" + lesson.end));
-          row.append(element("p", (lesson.status === "cancelled" ? "Отменённое время: " : "Стало: ") + dayLabel(lesson.date) + ", " + timeRange(lesson)));
+        if (wasRescheduled) {
+          const cancelled = lesson.status === "cancelled";
+          row.append(element("p", (cancelled ? "Изначально: " : "Было: ") + dayLabel(lesson.day) + ", " + lesson.start + "–" + lesson.end));
+          row.append(element("p", (cancelled ? "Отменено: " : "Стало: ") + dayLabel(lesson.date) + ", " + timeRange(lesson)));
         }
         if (lesson.reason) row.append(element("p", lesson.reason));
         if (addActions && lesson.day === day && timestamp(lesson.date, lesson.time) > Date.now()) addActions(row, lesson);

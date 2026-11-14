@@ -2,12 +2,16 @@
   "use strict";
 
   const config = window.SUPABASE_CONFIG;
+  const calendar = document.querySelector("#calendar-list");
+  const calendarPage = document.body.dataset.page === "calendar";
 
-  if (!isConfigured(config) || !window.supabase || typeof window.supabase.createClient !== "function") {
+  if (!isConfigured(config) || (!calendarPage && typeof window.supabase?.createClient !== "function")) {
+    showCalendarError();
+    showSnapshotNotices();
     return;
   }
 
-  const client = window.supabase.createClient(config.url, config.anonKey, {
+  const client = calendarPage ? null : window.supabase.createClient(config.url, config.anonKey, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
@@ -20,22 +24,22 @@
     loaders.push(loadHomeContent());
   }
   if (document.querySelector("#news-list")) {
-    loaders.push(loadNews());
+    loaders.push(loadNews().catch((error) => { showSnapshotNotice("news-list"); throw error; }));
   }
-  if (document.querySelector("#calendar-list")) {
-    loaders.push(loadCalendar());
+  if (calendar) {
+    loaders.push(loadCalendar().catch((error) => { showCalendarError(); throw error; }));
   }
   if (document.querySelector("#results-list")) {
     loaders.push(loadResults());
   }
   if (document.querySelector("#gallery-albums")) {
-    loaders.push(loadGallery());
+    loaders.push(loadGallery().catch((error) => { showSnapshotNotice("gallery-albums"); throw error; }));
   }
 
   Promise.allSettled(loaders).then((results) => {
     results.forEach((result) => {
       if (result.status === "rejected") {
-        console.warn("Не удалось обновить один из разделов. Показан статический fallback.", result.reason);
+        console.warn("Не удалось обновить один из разделов.", result.reason);
       }
     });
   });
@@ -219,35 +223,53 @@
   }
 
   async function loadCalendar() {
-    const container = document.querySelector("#calendar-list");
-    const limit = parseLimit(container.dataset.limit);
-    let query = client
-      .from("competition_events")
-      .select("id,title,start_date,end_date,date_precision,date_month,date_year,sort_date,location,description,category_label,short_label,created_at")
-      .eq("published", true)
-      .order("sort_date", { ascending: true })
-      .order("created_at", { ascending: false });
-
-    if (limit) {
-      query = query.limit(limit);
+    const limit = parseLimit(calendar.dataset.limit);
+    const today = new Intl.DateTimeFormat("sv-SE", {
+      timeZone: "Asia/Tomsk", year: "numeric", month: "2-digit", day: "2-digit"
+    }).format(new Date());
+    const columns = "id,title,start_date,end_date,date_precision,date_month,date_year,sort_date,location,description,category_label,short_label,published,created_at";
+    const endpoint = new URL("/rest/v1/competition_events", config.url);
+    endpoint.search = new URLSearchParams({
+      select: columns,
+      published: "eq.true",
+      order: "sort_date.asc,created_at.desc"
+    });
+    const response = await fetch(endpoint, { headers: { apikey: config.anonKey } });
+    if (!response.ok) {
+      throw new Error(`Календарь: HTTP ${response.status}`);
     }
-    const result = await query;
-
-    if (result.error) {
-      throw result.error;
-    }
-    if (!Array.isArray(result.data)) {
+    const events = await response.json();
+    if (!Array.isArray(events)) {
       throw new Error("Получен некорректный ответ для календаря.");
     }
 
-    if (result.data.length === 0) {
-      container.replaceChildren(createEmptyState("Пока нет опубликованных событий."));
-      return;
-    }
+    const upcoming = events.filter((item) => {
+      if (item.published !== true) return false;
+      return item.date_precision === "month"
+        ? `${item.date_year}-${String(item.date_month).padStart(2, "0")}` >= today.slice(0, 7)
+        : (item.end_date || item.start_date) >= today;
+    });
+    renderEvents(calendar, limit ? upcoming.slice(0, limit) : upcoming, "Ближайших соревнований пока нет.");
+  }
 
-    const fragment = document.createDocumentFragment();
-    result.data.forEach((item) => fragment.append(createEvent(item)));
-    container.replaceChildren(fragment);
+  function renderEvents(container, items, emptyMessage) {
+    container.replaceChildren(...(items.length ? items.map(createEvent) : [createEmptyState(emptyMessage)]));
+  }
+
+  function showCalendarError() {
+    if (calendar) {
+      calendar.replaceChildren(createEmptyState("Календарь временно недоступен. Попробуйте обновить страницу позже."));
+    }
+  }
+
+  function showSnapshotNotices() {
+    showSnapshotNotice("news-list");
+    showSnapshotNotice("gallery-albums");
+  }
+
+  function showSnapshotNotice(id) {
+    const notice = document.querySelector(`#${id}-notice`);
+    if (notice) notice.hidden = false;
   }
 
   function createEvent(item) {

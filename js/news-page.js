@@ -21,6 +21,8 @@
     || !window.supabase || typeof window.supabase.createClient !== "function") {
     if (requestedId !== null) {
       renderDetailError();
+    } else {
+      showArchiveFallback();
     }
     return;
   }
@@ -52,7 +54,7 @@
         renderDetailError();
         console.warn("Не удалось загрузить полную новость.", error);
       } else {
-        // До успешного ответа статическая лента остаётся полезным fallback.
+        showArchiveFallback();
         console.warn("Не удалось загрузить новости. Показан статический fallback.", error);
       }
     }
@@ -62,6 +64,11 @@
     document.body.classList.remove("news-detail-mode");
     container.hidden = false;
     detailContainer.hidden = true;
+  }
+
+  function showArchiveFallback() {
+    const notice = document.querySelector("#news-list-notice");
+    if (notice) notice.hidden = false;
   }
 
   function enterDetailMode() {

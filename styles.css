@@ -678,6 +678,7 @@ h2 {
 }
 
 .news-stream {
+  min-width: 0;
   border-top: 1px solid rgb(255 255 255 / 22%);
 }
 
@@ -737,6 +738,12 @@ h2 {
 
 .home-news-layout .news-row {
   grid-template-columns: minmax(0, 1fr) 24px;
+}
+
+.home-news-layout .news-row-content,
+.home-news-layout .news-featured-body {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .home-news-layout .news-featured p,
@@ -2206,7 +2213,7 @@ body.news-detail-mode .news-page-section {
   }
 
   .news-layout {
-    grid-template-columns: 1.05fr .95fr;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
     gap: 28px;
   }
 
@@ -2318,7 +2325,7 @@ body.news-detail-mode .news-page-section {
   }
 
   .news-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .news-page-list {
@@ -2930,3 +2937,152 @@ body.news-detail-mode .news-page-section {
     transition: none !important;
   }
 }
+
+.start-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.start-card {
+  padding: clamp(20px, 4vw, 36px);
+  overflow-wrap: anywhere;
+  background: var(--white);
+  border: 1px solid #dbe3ee;
+  border-radius: 18px;
+}
+
+.start-card h2 {
+  margin: 0 0 14px;
+  color: var(--navy);
+  font-size: clamp(22px, 3vw, 30px);
+}
+
+.start-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 18px;
+}
+
+@media (max-width: 660px) {
+  .start-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+.analytics-dialog {
+  width: min(480px, calc(100% - 32px));
+  padding: 24px;
+  color: var(--navy);
+  border: 1px solid #dbe3ee;
+  border-radius: 16px;
+}
+
+.analytics-dialog::backdrop {
+  background: rgb(2 11 53 / 42%);
+}
+
+.analytics-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.analytics-actions button,
+.analytics-settings {
+  padding: 8px 12px;
+  color: inherit;
+  font: inherit;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.nav-more { position: relative; }
+.nav-more summary {
+  display: flex;
+  list-style: none;
+  align-items: center;
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  color: rgb(255 255 255 / 74%);
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.nav-more summary::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid;
+  border-bottom: 1.5px solid;
+  transform: translateY(-2px) rotate(45deg);
+}
+.nav-more[open] summary::after { transform: translateY(2px) rotate(225deg); }
+.nav-more:has([aria-current]) summary,
+.nav-more summary:hover,
+.nav-more[open] summary { color: var(--white); }
+
+.nav-more[open] .nav-more-links { display: grid; }
+.site-nav .nav-more-links a {
+  padding: 12px;
+  border-radius: 6px;
+}
+.site-nav .nav-more-links a:hover,
+.site-nav .nav-more-links a.active { background: rgb(255 255 255 / 10%); }
+.site-nav .nav-more-links a::after,
+.site-nav a.nav-start::after { display: none; }
+.site-nav a.nav-start {
+  min-height: 42px;
+  padding: 0 14px;
+  color: var(--white);
+  font-size: 12px;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+}
+@media (min-width: 921px) {
+  .site-nav {
+    gap: clamp(12px, 1.7vw, 26px);
+    white-space: nowrap;
+  }
+  .nav-more summary { min-height: 42px; }
+  .nav-more-links {
+    position: absolute;
+    z-index: 1;
+    top: 100%;
+    right: 0;
+    min-width: 165px;
+    padding: 6px;
+    background: var(--navy);
+    border: 1px solid rgb(255 255 255 / 20%);
+    border-radius: 9px;
+    box-shadow: 0 12px 24px rgb(0 0 0 / 24%);
+  }
+}
+
+@media (max-width: 920px) {
+  .site-nav { gap: 4px; max-height: calc(100dvh - var(--header-height)); }
+  .nav-more summary {
+    width: 100%;
+    min-height: 44px;
+    justify-content: space-between;
+    font-size: 12px;
+    border-bottom: 1px solid rgb(255 255 255 / 10%);
+  }
+  .site-nav .nav-more-links { padding-left: 12px; }
+  .site-nav a.nav-start { margin-top: 10px; }
+}
+
+
+.nav-more summary::-webkit-details-marker { display: none; }
+
+#calendar-list noscript:has(span) + .calendar-loading { display: none; }

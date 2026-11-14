@@ -20,7 +20,7 @@
     renderResults();
   });
 
-  loadResults();
+  loadResults().catch(showFallbackNotice);
 
   async function loadResults() {
     if (!window.supabase || !window.SUPABASE_CONFIG) {

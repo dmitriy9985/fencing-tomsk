@@ -4,6 +4,7 @@
   const menuButton = document.querySelector("#mobile-menu");
   const navigation = document.querySelector("#site-nav");
   const navigationLinks = Array.from(document.querySelectorAll("#site-nav a"));
+  const more = navigation.querySelector(".nav-more");
   const galleryAlbums = document.querySelector("#gallery-albums");
   let galleryResizeFrame = 0;
 
@@ -16,6 +17,7 @@
   });
 
   function closeMenu() {
+    if (more) more.open = false;
     navigation.classList.remove("open");
     menuButton.setAttribute("aria-expanded", "false");
     menuButton.setAttribute("aria-label", "Открыть меню");
@@ -24,6 +26,7 @@
 
   function toggleMenu() {
     const willOpen = !navigation.classList.contains("open");
+    if (!willOpen && more) more.open = false;
     navigation.classList.toggle("open", willOpen);
     menuButton.setAttribute("aria-expanded", String(willOpen));
     menuButton.setAttribute("aria-label", willOpen ? "Закрыть меню" : "Открыть меню");
@@ -31,23 +34,34 @@
   }
 
   menuButton.addEventListener("click", toggleMenu);
-  navigationLinks.forEach((link) => link.addEventListener("click", closeMenu));
+  navigation.addEventListener("click", (event) => {
+    if (event.target.closest("a")) closeMenu();
+  });
 
   document.addEventListener("click", (event) => {
+    if (more && !more.contains(event.target)) more.open = false;
     if (!navigation.contains(event.target) && !menuButton.contains(event.target)) {
       closeMenu();
     }
   });
 
+  more?.addEventListener("focusout", (event) => {
+    if (!more.contains(event.relatedTarget)) more.open = false;
+  });
+
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
+    if (event.key !== "Escape") return;
+    if (more?.open) {
+      more.open = false;
+      more.querySelector("summary").focus();
+    } else if (navigation.classList.contains("open")) {
       closeMenu();
       menuButton.focus();
     }
   });
 
   window.addEventListener("resize", () => {
-    if (window.innerWidth > 920) {
+    if (window.innerWidth > 920 && navigation.classList.contains("open")) {
       closeMenu();
     }
     scheduleGalleryLayout();

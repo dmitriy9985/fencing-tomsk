@@ -11,7 +11,10 @@
   <link rel="stylesheet" href="admin.css">
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
   <script defer src="../js/supabase-config.js"></script>
+  <link rel="stylesheet" href="../training/training.css">
   <script defer src="shared.js"></script>
+  <script defer src="../js/training-schedule.js"></script>
+  <script defer src="training.js"></script>
   <script defer src="calendar.js"></script>
   <script defer src="results.js"></script>
   <script defer src="gallery.js"></script>
@@ -67,6 +70,7 @@
       <div class="admin-shell">
         <nav class="admin-nav" aria-label="Разделы админ-панели">
           <a class="admin-nav-link" href="#news" data-section-link="news">Новости</a>
+          <a class="admin-nav-link" href="#training" data-section-link="training">Тренировки</a>
           <a class="admin-nav-link" href="#calendar" data-section-link="calendar">Календарь</a>
           <a class="admin-nav-link" href="#results" data-section-link="results">Результаты</a>
           <a class="admin-nav-link" href="#gallery" data-section-link="gallery">Галерея</a>
@@ -162,6 +166,52 @@
               </div>
               <div id="news-list" class="news-list" aria-live="polite"></div>
             </section>
+          </section>
+
+          <section class="admin-section" data-admin-section="training" aria-labelledby="training-section-title" hidden>
+            <div class="section-heading">
+              <div><h2 id="training-section-title">Тренировки</h2><p>Время Томска. Изменения касаются выбранного занятия.</p></div>
+              <button type="button" class="button button-secondary" id="training-refresh">Обновить</button>
+            </div>
+            <div class="training-week-controls">
+          <button type="button" class="training-control" data-training-step="-7" aria-label="Предыдущая неделя">←</button>
+          <div>
+            <strong class="training-week-range" data-training-week-range aria-live="polite"></strong>
+            <input type="date" data-training-date aria-label="Выбрать дату">
+          </div>
+          <button type="button" class="training-control" data-training-step="7" aria-label="Следующая неделя">→</button>
+        </div>
+        <p class="training-status" data-training-status role="status"></p>
+        <div class="training-grid" data-training-list></div>
+            <section id="training-notice" class="training-notification" hidden>
+              <h3>Сохранённое изменение</h3>
+              <pre class="training-message"></pre>
+              <button type="button" class="training-control" data-copy>Скопировать текст</button>
+              <p class="training-copy-status" role="status"></p>
+            </section>
+            <dialog id="training-dialog" class="training-dialog" aria-labelledby="training-dialog-title">
+  <form id="training-form">
+    <h2 id="training-dialog-title"></h2>
+    <p id="training-original"></p>
+    <p id="training-current"></p>
+    <div class="training-fields" id="training-move-fields">
+      <label>Новая дата<input type="date" name="date" required></label>
+      <label>Время начала<input type="time" name="time" required></label>
+    </div>
+    <label id="training-reason">Причина для публикации (необязательно)<textarea name="reason" rows="2" maxlength="200"></textarea></label>
+    <section class="training-notification">
+      <h3>Текст уведомления</h3>
+      <pre class="training-message"></pre>
+      <button type="button" data-copy>Скопировать текст</button>
+      <p class="training-copy-status" role="status"></p>
+    </section>
+    <p id="training-error" role="alert"></p>
+    <div class="training-actions">
+      <button type="button" data-close autofocus>Назад</button>
+      <button type="submit" class="button button-primary" id="training-submit">Подтвердить</button>
+    </div>
+  </form>
+</dialog>
           </section>
 
           <section class="admin-section" data-admin-section="calendar" aria-labelledby="calendar-section-title" hidden>

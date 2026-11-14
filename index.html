@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" href="/images/logo/logoffto.png">
   <link rel="apple-touch-icon" href="/images/logo/logoffto.png">
   <link rel="stylesheet" href="/styles.css">
-  <script defer src="/js/site.js"></script>
+  <script defer src="/js/site.js"></script><script defer src="/js/analytics.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
   <script defer src="/js/supabase-config.js"></script>
   <script defer src="/js/site-content.js"></script>
@@ -21,8 +21,10 @@
     <div class="wrap header-inner">
       <a class="brand" href="/" aria-label="На главную"><img src="/images/logo/logoffto.png" alt=""><span><b>Фехтование в Томске</b><small>Федерация фехтования Томской области</small></span></a>
       <button class="mobile-menu" id="mobile-menu" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Открыть меню"><span></span><span></span><span></span></button>
-      <nav class="desktop-nav" id="site-nav" aria-label="Основная навигация">
-        <a href="/" data-nav="home">Главная</a><a href="/news/" data-nav="news">Новости</a><a href="/calendar/" data-nav="calendar">Календарь</a><a href="/results/" data-nav="results">Результаты</a><a href="/coaches/" data-nav="coaches">Тренеры</a><a href="/organizations/" data-nav="organizations">Организации</a><a href="/gallery/" data-nav="gallery">Галерея</a><a href="/contacts/" data-nav="contacts">Контакты</a>
+      <nav class="desktop-nav site-nav" id="site-nav" aria-label="Основная навигация">
+        <a href="/" data-nav="home">Главная</a><a href="/news/" data-nav="news">Новости</a><a href="/training/" data-nav="training">Тренировки</a><a href="/calendar/" data-nav="calendar">Календарь</a><a href="/results/" data-nav="results">Результаты</a>
+        <details class="nav-more"><summary>Ещё</summary><div class="nav-more-links"><a href="/coaches/" data-nav="coaches">Тренеры</a><a href="/organizations/" data-nav="organizations">Организации</a><a href="/gallery/" data-nav="gallery">Галерея</a><a href="/contacts/" data-nav="contacts">Контакты</a></div></details>
+        <a href="/start/" data-nav="start" class="button button-red nav-start">Начать заниматься</a>
       </nav>
     </div>
   </header>
@@ -34,7 +36,7 @@
           <p class="kicker kicker-light" id="hero-kicker">Томская область • официальный сайт</p>
           <h1><span id="hero-title-primary">Фехтование</span><span id="hero-title-secondary">в Томске</span></h1>
           <p class="hero-lead" id="hero-subtitle">Новости, календарь соревнований, результаты, тренеры и развитие фехтования в Томской области.</p>
-          <div class="hero-actions"><a class="button button-red" href="/calendar/">Календарь соревнований <img src="/images/icons/arrow-right.svg" alt=""></a><a class="button button-ghost" href="/contacts/">Связаться с федерацией</a></div>
+          <div class="hero-actions"><a class="button button-red" href="/calendar/">Календарь соревнований <img src="/images/icons/arrow-right.svg" alt=""></a><a class="button button-ghost" href="/start/">Начать заниматься</a></div>
         </div>
         <figure class="hero-photo"><img id="hero-image" src="/images/awards/shutova2026/shutova2026.jpeg" alt="Томские фехтовальщики на турнире"><figcaption class="photo-caption"><span>Томская область</span><strong>Фехтование в Томской области</strong></figcaption></figure>
       </div>
@@ -55,9 +57,10 @@
     <section class="section section-ink home-preview-section">
       <div class="wrap">
         <div class="section-heading light-heading"><div><p class="kicker kicker-light">Последние события</p><h2>Новости федерации</h2></div><a class="section-link section-link-light" href="/news/">Все новости <img src="/images/icons/arrow-right.svg" alt=""></a></div>
+        <p id="news-list-notice" class="empty-state" role="status" hidden>Показана сохранённая подборка. Обновление временно недоступно.</p>
         <div class="news-layout home-news-layout" id="news-list" data-mode="preview" data-limit="3">
           <article class="news-featured"><img src="/images/awards/shutova2026/shutova2026.jpeg" alt="Фехтовальщики Томска"><div class="news-featured-body"><time datetime="2026-05-17">17 мая 2026</time><h3>Томские фехтовальщики завоевали золото и две бронзы на турнире Любови Шутовой</h3><p>Томские спортсмены показали отличные результаты на межрегиональном турнире.</p></div></article>
-          <div class="news-stream"><article class="news-row"><div><time datetime="2026-03-14">14 марта 2026</time><h3>Первенство Томской области: девушки</h3><p>Победители и призёры соревнований по фехтованию на шпагах.</p></div><img class="row-arrow" src="/images/icons/arrow-right.svg" alt=""></article><article class="news-row"><div><time datetime="2025-11-18">15–18 ноября 2025</time><h3>Бронза на Кубке Легенд в Уфе</h3><p>Команда Томской области заняла третье место.</p></div><img class="row-arrow" src="/images/icons/arrow-right.svg" alt=""></article></div>
+          <div class="news-stream"><article class="news-row"><div class="news-row-content"><time datetime="2026-03-14">14 марта 2026</time><h3>Первенство Томской области: девушки</h3><p>Победители и призёры соревнований по фехтованию на шпагах.</p></div><img class="row-arrow" src="/images/icons/arrow-right.svg" alt=""></article><article class="news-row"><div class="news-row-content"><time datetime="2025-11-18">15–18 ноября 2025</time><h3>Бронза на Кубке Легенд в Уфе</h3><p>Команда Томской области заняла третье место.</p></div><img class="row-arrow" src="/images/icons/arrow-right.svg" alt=""></article></div>
         </div>
       </div>
     </section>
@@ -65,7 +68,7 @@
     <section class="section calendar-section home-preview-section">
       <div class="wrap">
         <div class="section-heading"><div><p class="kicker">Ближайшие старты</p><h2>Календарь соревнований</h2></div><a class="section-link" href="/calendar/">Весь календарь <img src="/images/icons/arrow-right.svg" alt=""></a></div>
-        <div class="event-list" id="calendar-list" data-limit="1"><article class="event-row"><div class="event-date"><span>09–12</span><b>июнь</b><small>2026</small></div><div class="event-main"><p class="event-category">Первенство России</p><h3>Первенство России по фехтованию среди юношей и девушек 13–15 лет</h3><div class="event-meta"><span>Тольятти</span><span>Личные и командные соревнования на шпагах</span></div></div><div class="event-code">ФР</div></article></div>
+        <div class="event-list" id="calendar-list" data-limit="1" aria-live="polite"><p class="empty-state"><noscript><span>Для просмотра соревнований включите JavaScript.</span></noscript><span class="calendar-loading">Загружаем календарь…</span></p></div>
       </div>
     </section>
 

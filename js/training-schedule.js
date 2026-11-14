@@ -109,22 +109,15 @@
       + "and(moved_date.gte." + week + ",moved_date.lte." + end + ")";
   }
 
-  async function publicRead(week) {
+  async function publicRead(table, extra = {}) {
     const config = window.SUPABASE_CONFIG;
-    async function read(table, extra = {}) {
-      const url = new URL("/rest/v1/" + table, config.url);
-      url.search = new URLSearchParams({ select: columns[table], ...extra });
-      const response = await fetch(url, { headers: { apikey: config.anonKey }, cache: "no-store" });
-      if (!response.ok) throw new Error("HTTP " + response.status);
-      const rows = await response.json();
-      if (!Array.isArray(rows)) throw new Error("Получен некорректный ответ.");
-      return rows;
-    }
-    const [slots, changes] = await Promise.all([
-      read("training_slots"),
-      read("training_exceptions", { or: "(" + rangeFilter(week) + ")" })
-    ]);
-    return { slots, changes };
+    const url = new URL("/rest/v1/" + table, config.url);
+    url.search = new URLSearchParams({ select: columns[table], ...extra });
+    const response = await fetch(url, { headers: { apikey: config.anonKey }, cache: "no-store" });
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    const rows = await response.json();
+    if (!Array.isArray(rows)) throw new Error("Получен некорректный ответ.");
+    return rows;
   }
 
   function bindWeek(root, loadWeek) {
@@ -148,6 +141,10 @@
       update();
     };
     picker.addEventListener("change", selectWeek);
+    root.querySelector("[data-training-today]")?.addEventListener("click", () => {
+      picker.value = today();
+      selectWeek();
+    });
     for (const button of root.querySelectorAll("[data-training-step]")) {
       button.addEventListener("click", () => {
         picker.value = addDays(validDay(picker.value) ? picker.value : today(), Number(button.dataset.trainingStep));
@@ -162,22 +159,127 @@
 
   const root = document.querySelector("[data-training-public]");
   if (!root) return;
+  const regular = root.querySelector("[data-training-regular]");
+  const regularStatus = root.querySelector("[data-training-regular-status]");
   const list = root.querySelector("[data-training-list]");
   const status = root.querySelector("[data-training-status]");
+  const weekAlert = document.querySelector("[data-training-week-alert]");
+  const alertSummary = weekAlert.querySelector("[data-training-alert-summary]");
+  const periods = {
+    "morning-1": "Утро", "morning-2": "Утро", afternoon: "День",
+    "monday-evening": "Вечер", evening: "Вечер"
+  };
+  const shortDays = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+
+  function showRegular(slots) {
+    const groups = new Map();
+    const ordered = [...slots].sort((a, b) => a.starts_at.localeCompare(b.starts_at));
+    for (const slot of ordered) {
+      const days = [...slot.weekdays].sort((a, b) => a - b);
+      const key = days.join(",");
+      const label = { "1,2,3,4,5": "Пн–пт", "2,3,4,5": "Вт–пт", 1: "Понедельник" }[key]
+        || days.map(day => shortDays[day - 1]).join(", ");
+      const period = periods[slot.id];
+      const groupKey = (period || "") + ":" + key;
+      if (!groups.has(groupKey)) groups.set(groupKey, { title: period || label, days: period ? label : "", times: [] });
+      groups.get(groupKey).times.push(slot.starts_at.slice(0, 5) + "–" + slot.ends_at.slice(0, 5));
+    }
+
+    const rows = [];
+    for (const group of groups.values()) {
+      const row = element("div", "", "training-regular-row");
+      const term = element("dt", group.title);
+      if (group.days) term.append(element("span", group.days, "training-regular-days"));
+      const hours = element("dd", "", "training-regular-hours");
+      for (const time of group.times) hours.append(element("span", time));
+      row.append(term, hours);
+      rows.push(row);
+    }
+    for (const [day, note, detail] of [
+      ["Суббота", "Выходной"],
+      ["Воскресенье", "Боевая практика", "Время уточняется"]
+    ]) {
+      const row = element("div", "", "training-regular-row training-weekend");
+      const description = element("dd", note);
+      if (detail) description.append(element("span", detail));
+      row.append(element("dt", day), description);
+      rows.push(row);
+    }
+    regular.replaceChildren(...rows);
+  }
+
+  function showChanges(week, slots, changes) {
+    const end = addDays(week, 6);
+    const byId = new Map(slots.map(slot => [slot.id, slot]));
+    const lessons = [];
+    for (const change of changes) {
+      const slot = byId.get(change.slot_id);
+      if (!slot || !["cancelled", "moved"].includes(change.status)) continue;
+      const lesson = occurrence(slot, change.original_date, change);
+      const originalInWeek = lesson.day >= week && lesson.day <= end;
+      lessons.push({ lesson, sortTime: originalInWeek ? lesson.day + lesson.start : lesson.date + lesson.time });
+    }
+    lessons.sort((a, b) => a.sortTime.localeCompare(b.sortTime));
+
+    let cancellations = 0;
+    for (const { lesson } of lessons) {
+      const cancelled = lesson.status === "cancelled";
+      if (cancelled) cancellations++;
+      const rescheduled = lesson.date !== lesson.day || lesson.time !== lesson.start;
+      const card = element("li", "", "training-change training-change-" + lesson.status);
+      const label = cancelled ? (rescheduled ? "Отменена после переноса" : "Отменена") : "Перенесена";
+      card.append(element("strong", label, "training-change-label"));
+      const times = element("dl", "", "training-change-times");
+      const addTime = (title, day, time) => {
+        const row = element("div");
+        row.append(element("dt", title), element("dd", dayLabel(day) + ", " + time));
+        times.append(row);
+      };
+      addTime(rescheduled ? (cancelled ? "Изначально" : "Было") : "По расписанию",
+        lesson.day, lesson.start + "–" + lesson.end);
+      if (rescheduled) addTime(cancelled ? "Отменено" : "Стало", lesson.date, timeRange(lesson));
+      card.append(times);
+      if (lesson.reason) card.append(element("p", "Причина: " + lesson.reason, "training-change-reason"));
+      list.append(card);
+    }
+    status.textContent = lessons.length ? "" : "На этой неделе изменений нет.";
+    if (lessons.length && week === weekStart(today())) {
+      const moves = lessons.length - cancellations;
+      alertSummary.textContent = [
+        cancellations ? "Отменено: " + cancellations : "",
+        moves ? "Перенесено: " + moves : ""
+      ].filter(Boolean).join(" · ");
+      weekAlert.hidden = false;
+    }
+  }
+
   let request = 0;
+  let slotsRequest;
   const refresh = bindWeek(root, async (week) => {
     const token = ++request;
-    status.textContent = "Загружаем расписание…";
+    weekAlert.hidden = true;
+    status.textContent = "Загружаем изменения…";
     list.replaceChildren();
+    slotsRequest ||= publicRead("training_slots").then(slots => {
+      showRegular(slots);
+      regularStatus.textContent = "";
+      return slots;
+    }).catch(error => {
+      slotsRequest = null;
+      showRegular(regularSlots);
+      regularStatus.textContent = "Показано сохранённое расписание. Обновление временно недоступно.";
+      throw error;
+    });
     try {
-      const { slots, changes } = await publicRead(week);
+      const [slots, changes] = await Promise.all([
+        slotsRequest,
+        publicRead("training_exceptions", { or: "(" + rangeFilter(week) + ")" })
+      ]);
       if (token !== request) return;
-      showWeek(list, week, slots, changes);
-      status.textContent = "";
+      showChanges(week, slots, changes);
     } catch {
       if (token !== request) return;
-      showWeek(list, week, regularSlots, []);
-      status.textContent = "Показано регулярное расписание. Сведения об отменах и переносах сейчас недоступны.";
+      status.textContent = "Не удалось загрузить изменения. Обновите страницу или выберите неделю ещё раз.";
     }
   });
   refresh();

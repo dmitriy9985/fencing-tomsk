@@ -21,28 +21,43 @@
         <a href="/start/" data-nav="start" class="button button-red nav-start">Начать заниматься</a>
       </nav></div></header>
   <main id="main-content">
-    <section class="page-hero">
+    <section class="page-hero training-hero">
       <div class="wrap page-hero-inner">
-        <div><h1>Тренировки</h1><p>Расписание занятий по фехтованию. Все тренировки проходят в одном зале. Время указано по Томску.</p></div>
+        <div>
+          <h1>Расписание тренировок</h1>
+          <div aria-live="polite">
+            <a class="training-week-alert" href="#training-changes-title" data-training-week-alert hidden>
+              <span><strong>Есть изменения в расписании на этой неделе</strong><br><span data-training-alert-summary></span></span>
+              <span aria-hidden="true">→</span>
+            </a>
+          </div>
+          <p>Все тренировки проходят в одном зале. Время указано по Томску.</p>
+        </div>
         <img class="page-hero-icon" src="/images/icons/calendar.svg" alt="">
       </div>
     </section>
-    <section class="section page-section" data-training-public aria-labelledby="training-week-title">
-      <div class="wrap">
-        <div class="section-heading"><div><h2 id="training-week-title">Расписание на неделю</h2></div></div>
-        <div class="training-week-controls">
+    <div class="wrap training-overview" data-training-public>
+      <section class="training-panel" aria-labelledby="training-regular-title">
+        <h2 id="training-regular-title">Постоянное расписание</h2>
+        <p class="training-status" data-training-regular-status role="status">Загружаем расписание…</p>
+        <dl class="training-regular" data-training-regular></dl>
+      </section>
+      <section class="training-panel training-panel-changes" aria-labelledby="training-changes-title">
+        <h2 id="training-changes-title" tabindex="-1">Изменения в расписании</h2>
+        <div class="training-week-header">
+          <strong data-training-week-range aria-live="polite"></strong>
+          <button type="button" class="training-control training-today" data-training-today>Сегодня</button>
+        </div>
+        <div class="training-week-picker">
           <button type="button" class="training-control" data-training-step="-7" aria-label="Предыдущая неделя">←</button>
-          <div>
-            <strong class="training-week-range" data-training-week-range aria-live="polite"></strong>
-            <input type="date" data-training-date aria-label="Выбрать дату">
-          </div>
+          <input type="date" data-training-date aria-label="Выбрать дату">
           <button type="button" class="training-control" data-training-step="7" aria-label="Следующая неделя">→</button>
         </div>
-        <p class="training-status" data-training-status role="status">Загружаем расписание…</p>
-        <div class="training-grid" data-training-list></div>
-        <noscript><p>Для просмотра расписания включите JavaScript.</p></noscript>
-      </div>
-    </section>
+        <p class="training-week-status" data-training-status role="status">Загружаем изменения…</p>
+        <ul class="training-changes" data-training-list></ul>
+      </section>
+      <noscript><p>Для просмотра расписания включите JavaScript.</p></noscript>
+    </div>
   </main>
   <footer class="site-footer"><div class="wrap footer-main"><div class="footer-brand"><img src="/images/logo/logoffto.png" alt=""><div><b>Федерация фехтования<br>Томской области</b><p>Официальный информационный ресурс региональной спортивной общественной организации.</p></div></div><div><h3>Разделы</h3><div class="footer-links"><a href="/news/">Новости</a><a href="/calendar/">Календарь</a><a href="/results/">Результаты</a><a href="/coaches/">Тренеры</a><a href="/organizations/">Организации</a><a href="/gallery/">Галерея</a></div></div><div><h3>Контакты</h3><div class="footer-contacts"><a class="footer-contact-item" href="tel:+79833410327"><img src="/images/icons/phone.svg" alt="" aria-hidden="true"><span>8 (983) 341-03-27</span></a><a class="footer-contact-item" href="mailto:fencing-tomsk@mail.ru"><img src="/images/icons/mail.svg" alt="" aria-hidden="true"><span>fencing-tomsk@mail.ru</span></a><span class="footer-contact-item"><img src="/images/icons/location.svg" alt="" aria-hidden="true"><span>Томск, пр. Ленина, 207</span></span></div></div></div><div class="wrap footer-bottom"><span>© 2026 Федерация фехтования Томской области</span><span>Официальный сайт</span></div></footer>
 </body>

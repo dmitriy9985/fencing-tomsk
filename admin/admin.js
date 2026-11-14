@@ -7,7 +7,7 @@
   const MAX_ADDITIONAL_PHOTOS = 10;
   const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
   const STORAGE_BUCKET = "news-images";
-  const ADMIN_SECTIONS = new Set(["news", "calendar", "results", "gallery", "home"]);
+  const ADMIN_SECTIONS = new Set(["news", "calendar", "results", "gallery", "home", "training"]);
 
   const elements = {
     message: document.getElementById("message"),
@@ -1051,7 +1051,7 @@
       config
       && typeof config.url === "string"
       && typeof config.anonKey === "string"
-      && config.url.startsWith("https://")
+      && (config.url.startsWith("https://") || (window.isSecureContext && config.url === location.origin))
       && !config.url.includes("YOUR_SUPABASE")
       && config.anonKey.length > 20
       && !config.anonKey.includes("YOUR_SUPABASE")

@@ -1,0 +1,87 @@
+.training-week-controls {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+
+.training-week-range { display: block; }
+
+.training-week-controls input,
+.training-dialog input,
+.training-dialog textarea {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-inline-size: 0;
+  margin-top: 6px;
+  padding: 9px;
+  color: inherit;
+  font: inherit;
+  background: #fff;
+  border: 1px solid #aab7cd;
+  border-radius: 8px;
+}
+
+.training-control,
+.training-dialog button:not(.button) {
+  min-height: 42px;
+  padding: 8px 12px;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  background: #fff;
+  border: 1px solid #aab7cd;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.training-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 245px), 1fr));
+  align-items: start;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.training-day {
+  min-width: 0;
+  padding: 15px;
+  background: #fff;
+  border: 1px solid #dbe3ee;
+  border-radius: 12px;
+}
+
+.training-day h3 { margin: 0 0 7px; font-size: 17px; }
+.training-day h3::first-letter { text-transform: uppercase; }
+.training-entry { padding: 9px 0; border-top: 1px solid #e4ebf5; }
+.training-entry:last-child { padding-bottom: 0; }
+.training-entry p, .training-day-note, .training-status {
+  margin: 6px 0;
+  overflow-wrap: anywhere;
+}
+.training-status:not(:empty) { padding: 8px 0; }
+.training-state { display: inline-block; margin-left: 8px; padding: 3px 6px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+.training-state-cancelled { background: #fae9eb; color: #8d2232; }
+.training-state-moved { background: #fff0d3; color: #704b00; }
+.training-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
+
+.training-dialog {
+  width: min(540px, calc(100% - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  padding: clamp(16px, 5vw, 26px);
+  color: #0e1730;
+  background: #fff;
+  border: 1px solid #dbe3ee;
+  border-radius: 14px;
+}
+.training-dialog::backdrop { background: rgb(2 11 53 / 56%); }
+.training-dialog h2 { margin: 0 0 12px; font-size: 24px; }
+.training-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-block: 14px; }
+.training-fields[hidden] { display: none; }
+.training-notification { margin-block: 12px; padding: 12px; background: #f3f6fa; border-radius: 8px; }
+.training-notification h3 { margin: 0; font-size: 15px; }
+.training-message { margin: 8px 0; font: inherit; white-space: pre-wrap; overflow-wrap: anywhere; }
+.training-dialog [role="alert"] { color: #97233a; }

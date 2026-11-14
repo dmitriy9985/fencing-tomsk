@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Расписание тренировок по фехтованию в Томске, отмены и переносы.">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://*.supabase.co; img-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>Тренировки · Федерация фехтования Томской области</title>
+  <link rel="icon" href="/images/logo/logoffto.png">
+  <link rel="stylesheet" href="/styles.css">
+  <script defer src="/js/site.js"></script><script defer src="/js/analytics.js"></script>
+  <link rel="stylesheet" href="/training/training.css">
+  <script defer src="/js/supabase-config.js"></script><script defer src="/js/training-schedule.js"></script>
+</head>
+<body data-page="training">
+  <a class="skip-link" href="#main-content">Перейти к содержанию</a>
+  <header class="site-header"><div class="wrap header-inner"><a class="brand" href="/" aria-label="На главную"><img src="/images/logo/logoffto.png" alt=""><span><b>Фехтование в Томске</b><small>Федерация фехтования Томской области</small></span></a><button class="mobile-menu" id="mobile-menu" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Открыть меню"><span></span><span></span><span></span></button><nav class="desktop-nav site-nav" id="site-nav" aria-label="Основная навигация">
+        <a href="/" data-nav="home">Главная</a><a href="/news/" data-nav="news">Новости</a><a href="/training/" data-nav="training">Тренировки</a><a href="/calendar/" data-nav="calendar">Календарь</a><a href="/results/" data-nav="results">Результаты</a>
+        <details class="nav-more"><summary>Ещё</summary><div class="nav-more-links"><a href="/coaches/" data-nav="coaches">Тренеры</a><a href="/organizations/" data-nav="organizations">Организации</a><a href="/gallery/" data-nav="gallery">Галерея</a><a href="/contacts/" data-nav="contacts">Контакты</a></div></details>
+        <a href="/start/" data-nav="start" class="button button-red nav-start">Начать заниматься</a>
+      </nav></div></header>
+  <main id="main-content">
+    <section class="page-hero">
+      <div class="wrap page-hero-inner">
+        <div><h1>Тренировки</h1><p>Расписание занятий по фехтованию. Все тренировки проходят в одном зале. Время указано по Томску.</p></div>
+        <img class="page-hero-icon" src="/images/icons/calendar.svg" alt="">
+      </div>
+    </section>
+    <section class="section page-section" data-training-public aria-labelledby="training-week-title">
+      <div class="wrap">
+        <div class="section-heading"><div><h2 id="training-week-title">Расписание на неделю</h2></div></div>
+        <div class="training-week-controls">
+          <button type="button" class="training-control" data-training-step="-7" aria-label="Предыдущая неделя">←</button>
+          <div>
+            <strong class="training-week-range" data-training-week-range aria-live="polite"></strong>
+            <input type="date" data-training-date aria-label="Выбрать дату">
+          </div>
+          <button type="button" class="training-control" data-training-step="7" aria-label="Следующая неделя">→</button>
+        </div>
+        <p class="training-status" data-training-status role="status">Загружаем расписание…</p>
+        <div class="training-grid" data-training-list></div>
+        <noscript><p>Для просмотра расписания включите JavaScript.</p></noscript>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer"><div class="wrap footer-main"><div class="footer-brand"><img src="/images/logo/logoffto.png" alt=""><div><b>Федерация фехтования<br>Томской области</b><p>Официальный информационный ресурс региональной спортивной общественной организации.</p></div></div><div><h3>Разделы</h3><div class="footer-links"><a href="/news/">Новости</a><a href="/calendar/">Календарь</a><a href="/results/">Результаты</a><a href="/coaches/">Тренеры</a><a href="/organizations/">Организации</a><a href="/gallery/">Галерея</a></div></div><div><h3>Контакты</h3><div class="footer-contacts"><a class="footer-contact-item" href="tel:+79833410327"><img src="/images/icons/phone.svg" alt="" aria-hidden="true"><span>8 (983) 341-03-27</span></a><a class="footer-contact-item" href="mailto:fencing-tomsk@mail.ru"><img src="/images/icons/mail.svg" alt="" aria-hidden="true"><span>fencing-tomsk@mail.ru</span></a><span class="footer-contact-item"><img src="/images/icons/location.svg" alt="" aria-hidden="true"><span>Томск, пр. Ленина, 207</span></span></div></div></div><div class="wrap footer-bottom"><span>© 2026 Федерация фехтования Томской области</span><span>Официальный сайт</span></div></footer>
+</body>
+</html>

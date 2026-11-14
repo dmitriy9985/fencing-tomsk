@@ -85,3 +85,172 @@
 .training-notification h3 { margin: 0; font-size: 15px; }
 .training-message { margin: 8px 0; font: inherit; white-space: pre-wrap; overflow-wrap: anywhere; }
 .training-dialog [role="alert"] { color: #97233a; }
+
+.training-hero .page-hero-inner {
+  min-height: 0;
+  align-items: center;
+  padding-block: clamp(32px, 5vw, 64px);
+}
+
+.training-hero h1 {
+  font-size: clamp(32px, 5.7vw, 76px);
+  line-height: 1;
+  letter-spacing: -.05em;
+  text-transform: none;
+}
+
+.training-hero p:not(.kicker) {
+  margin-top: 14px;
+  color: rgb(255 255 255 / 82%);
+}
+
+.training-week-alert:not([hidden]) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 16px;
+  padding: 10px 14px;
+  color: var(--navy);
+  background: #fff3e3;
+  border-inline-start: 4px solid var(--red);
+  border-radius: 8px;
+  line-height: 1.45;
+}
+
+.training-week-alert:hover strong,
+.training-week-alert:focus-visible strong { text-decoration: underline; }
+.training-week-alert [data-training-alert-summary] { font-size: .875rem; }
+
+.training-hero .page-hero-icon {
+  width: clamp(72px, 8vw, 104px);
+  padding: 18px;
+  border-radius: 14px;
+}
+
+.training-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1.24fr) minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(18px, 3vw, 36px);
+  padding-block: clamp(22px, 4vw, 44px) clamp(36px, 5vw, 64px);
+}
+
+.training-panel {
+  min-width: 0;
+  padding: clamp(16px, 2.5vw, 28px);
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--navy-2);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgb(2 11 53 / 5%);
+}
+
+.training-panel-changes { border-top-color: var(--red); }
+
+.training-panel h2 {
+  margin: 0 0 16px;
+  color: var(--navy);
+  font-size: clamp(22px, 2.35vw, 30px);
+  line-height: 1.12;
+  letter-spacing: -.035em;
+}
+
+.training-regular { margin: 0; }
+
+.training-regular-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.45fr);
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.training-regular-row:last-child { padding-bottom: 0; }
+.training-regular-row dt { color: var(--navy); font-weight: 700; }
+.training-regular-row dd { margin: 0; }
+.training-regular-days, .training-weekend dd span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: .875rem;
+  font-weight: 400;
+}
+
+.training-regular-hours {
+  display: grid;
+  gap: 5px;
+  color: var(--navy-2);
+  font-size: clamp(16px, 1.6vw, 20px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.training-regular-hours span { white-space: nowrap; }
+
+.training-week-header,
+.training-week-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.training-week-header { justify-content: space-between; margin-bottom: 8px; }
+.training-week-header strong { color: var(--navy); }
+.training-week-picker input {
+  flex: 1;
+  min-width: 0;
+  min-inline-size: 0;
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 10px;
+  color: inherit;
+  font: inherit;
+  background: var(--white);
+  border: 1px solid #aab7cd;
+  border-radius: 8px;
+}
+
+.training-today:not(:hover) { background: var(--paper); }
+.training-panel .training-control:hover,
+.training-panel .training-control:focus-visible { border-color: var(--blue); color: var(--navy-2); }
+.training-week-picker button { min-width: 42px; }
+
+.training-week-status:not(:empty) {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  color: var(--ink);
+  background: var(--paper);
+  border-radius: 8px;
+  line-height: 1.45;
+}
+.training-week-status:empty, .training-changes:empty { margin: 0; }
+
+.training-changes {
+  display: grid;
+  gap: 10px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.training-change {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-inline-start: 3px solid #9a620b;
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+.training-change-cancelled { border-inline-start-color: var(--red); }
+.training-change-label { color: #704b00; }
+.training-change-cancelled .training-change-label { color: #8d2232; }
+.training-change-times { display: grid; gap: 7px; margin: 9px 0 0; }
+.training-change-times dt { color: var(--muted); font-size: .875rem; }
+.training-change-times dd { margin: 2px 0 0; line-height: 1.35; }
+.training-change-reason { margin: 9px 0 0; line-height: 1.45; }
+
+@media (max-width: 740px) {
+  .training-overview { grid-template-columns: minmax(0, 1fr); }
+  .training-hero:has(.training-week-alert:not([hidden]))::after { bottom: 8%; }
+}

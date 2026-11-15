@@ -3077,34 +3077,49 @@ body.news-detail-mode .news-page-section {
   .start-venue-short { padding: 9px 12px; }
 }
 
-.analytics-dialog {
-  width: min(480px, calc(100% - 32px));
-  padding: 24px;
+.analytics-notice {
+  position: fixed;
+  z-index: 30;
+  inset: auto 12px max(12px, env(safe-area-inset-bottom)) auto;
+  width: min(410px, calc(100% - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  padding: 16px;
   color: var(--navy);
-  border: 1px solid #dbe3ee;
-  border-radius: 16px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--red);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgb(2 11 53 / 19%);
 }
-
-.analytics-dialog::backdrop {
-  background: rgb(2 11 53 / 42%);
-}
-
-.analytics-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.analytics-actions button,
-.analytics-settings {
-  padding: 8px 12px;
+.analytics-notice h2 { margin: 0 0 6px; font-size: 1.2rem; }
+.analytics-notice p { margin: 0 0 8px; line-height: 1.45; }
+.analytics-notice a, .footer-privacy { text-decoration: underline; text-underline-offset: .2em; }
+.analytics-notice a:hover, .footer-privacy:hover { text-decoration-thickness: 2px; }
+.analytics-actions, .footer-analytics { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.analytics-actions button, .analytics-settings {
+  min-height: 42px;
+  padding: 6px 10px;
   color: inherit;
   font: inherit;
-  background: transparent;
   border: 1px solid currentColor;
-  border-radius: 6px;
+  border-radius: 7px;
   cursor: pointer;
 }
+.analytics-actions button { flex: 1; background: var(--paper); font-weight: 700; }
+.analytics-actions button[data-choice="yes"] { color: var(--white); background: var(--navy-2); }
+.analytics-settings { background: transparent; }
+.analytics-notice [role="status"]:empty { display: none; }
+.analytics-notice [role="status"]:not(:empty) { margin: 8px 0 0; }
+
+.privacy-content {
+  max-width: 800px;
+  padding-block: 40px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.privacy-content h1, .privacy-content h2 { line-height: 1.2; color: var(--navy); }
+.privacy-content a { color: #143c9f; text-decoration: underline; }
 
 .nav-more { position: relative; }
 .nav-more summary {

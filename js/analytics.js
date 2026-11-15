@@ -7,7 +7,7 @@
   const siteOrigin = "https://fencing-tomsk.ru";
   const publicPages = new Set([
     "/", "/start/", "/training/", "/news/", "/calendar/", "/results/",
-    "/coaches/", "/organizations/", "/gallery/", "/contacts/", "/privacy/"
+    "/coaches/", "/organizations/", "/gallery/", "/contacts/", "/privacy/", "/privacy/analytics-consent/"
   ]);
   const pagePath = location.pathname.replace(/index\.html$/, "");
   if (!publicPages.has(pagePath)) return;
@@ -109,10 +109,10 @@
   notice.innerHTML = `
     <h2 id="analytics-heading" tabindex="-1">Аналитика сайта</h2>
     <p>С вашего согласия Яндекс Метрика использует cookies и данные о посещении для статистики. Выбор можно изменить в подвале сайта.</p>
-    <p><a href="/privacy/#analytics-consent">Условия согласия</a></p>
+    <p><a href="/privacy/analytics-consent/">Согласие на аналитику</a></p>
     <div class="analytics-actions">
       <button type="button" data-choice="no">Отклонить</button>
-      <button type="button" data-choice="yes">Разрешить</button>
+      <button type="button" data-choice="yes">Разрешить аналитику</button>
     </div>
     <p role="status"></p>`;
   document.body.append(notice);

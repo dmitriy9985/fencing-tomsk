@@ -3,7 +3,7 @@
 
   const counterId = 114258187;
   const analyticsEnabled = false; // Включать после утверждения документов и разрешения на публикацию.
-  const preferenceKey = "ffto-analytics-v3";
+  const preferenceKey = "ffto-analytics-v4";
   const siteOrigin = "https://fencing-tomsk.ru";
   const publicPages = new Set([
     "/", "/start/", "/training/", "/news/", "/calendar/", "/results/",

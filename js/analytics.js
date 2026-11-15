@@ -3,7 +3,7 @@
 
   const counterId = 114258187;
   const analyticsEnabled = false; // Включать после утверждения документов и разрешения на публикацию.
-  const preferenceKey = "ffto-analytics-v2";
+  const preferenceKey = "ffto-analytics-v3";
   const siteOrigin = "https://fencing-tomsk.ru";
   const publicPages = new Set([
     "/", "/start/", "/training/", "/news/", "/calendar/", "/results/",
@@ -22,23 +22,53 @@
 
   let tag;
   let active = false;
+  let consentUncertain = false;
 
   function readChoice() {
+    if (consentUncertain) return null;
     try {
-      const choice = JSON.parse(localStorage.getItem(preferenceKey));
-      return ["yes", "no"].includes(choice?.value) && Number.isFinite(choice.at) ? choice.value : null;
+      const saved = localStorage.getItem(preferenceKey);
+      const choice = JSON.parse(saved);
+      if (!Number.isFinite(choice?.at)) return null;
+      if (choice.value === "no") return "no";
+      if (choice.value === "yes" && sessionStorage.getItem(preferenceKey) === saved) return "yes";
     } catch {
       return null;
     }
+    return null;
   }
 
   function saveChoice(value) {
+    consentUncertain = true;
+    // Invalidate both copies before writing the new choice. A failed write of
+    // the refusal must not leave a previous grant usable after navigation.
+    try { sessionStorage.removeItem(preferenceKey); } catch { /* Try local storage independently. */ }
+    try { localStorage.removeItem(preferenceKey); } catch { /* The matching tab grant may already be gone. */ }
+
     try {
-      localStorage.setItem(preferenceKey, JSON.stringify({ value, at: Date.now() }));
-      return true;
+      const choice = JSON.stringify({ value, at: Date.now() });
+      if (value === "yes") {
+        sessionStorage.setItem(preferenceKey, choice);
+        if (sessionStorage.getItem(preferenceKey) !== choice) return false;
+      }
+      localStorage.setItem(preferenceKey, choice);
+      if (localStorage.getItem(preferenceKey) !== choice) return false;
     } catch {
       return false;
     }
+    consentUncertain = false;
+    return true;
+  }
+
+  function pageUrlForAnalytics() {
+    const url = new URL(pagePath, siteOrigin);
+    const query = new URLSearchParams(location.search);
+    const source = query.get("utm_source");
+    if (query.get("utm_medium") === "messenger" && ["telegram", "whatsapp", "viber", "skype", "wechat"].includes(source)) {
+      url.searchParams.set("utm_medium", "messenger");
+      url.searchParams.set("utm_source", source);
+    }
+    return url.href;
   }
 
   function safeReferrer() {
@@ -72,7 +102,7 @@
         trackHash: false, accurateTrackBounce: false, ecommerce: false,
         sendTitle: false, disableYtm: true
       });
-      window.ym(counterId, "hit", siteOrigin + pagePath, { referer: safeReferrer() });
+      window.ym(counterId, "hit", pageUrlForAnalytics(), { referer: safeReferrer() });
       active = true;
     }, { once: true });
     document.head.append(script);
@@ -137,8 +167,8 @@
     const choice = event.target.closest("[data-choice]")?.dataset.choice;
     if (!choice) return;
     if (!saveChoice(choice)) {
-      if (choice === "no") stopCounter(false);
-      status.textContent = "Браузер не сохранил выбор. Проверьте настройки хранения данных.";
+      stopCounter(false);
+      status.textContent = "Аналитика отключена. Если браузер не сохраняет выбор, очистите данные этого сайта в настройках браузера.";
       return;
     }
     const restoreFocus = notice.contains(document.activeElement);
@@ -152,7 +182,7 @@
   function syncChoice() {
     const choice = readChoice();
     if (choice === "yes") startCounter();
-    else stopCounter();
+    else stopCounter(choice === "no");
     showNotice(choice === null);
   }
 

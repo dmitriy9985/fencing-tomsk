@@ -3452,9 +3452,49 @@ body.news-detail-mode .news-page-section {
   max-width: 75ch;
 }
 
+.art-coach-profile {
+  display: grid;
+  gap: 16px 24px;
+}
+
+.art-coach-portrait {
+  width: min(100%, 216px);
+  margin: 0 auto;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.art-coach-portrait-frame {
+  aspect-ratio: 4 / 5;
+  padding: 10px;
+  border-top: 3px solid var(--navy);
+  background: #e5eaf1;
+}
+
+.art-coach-portrait img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.art-coach-portrait figcaption {
+  margin-top: 8px;
+}
+
 @media (min-width: 760px) {
   .art-coach-card {
     grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .art-coach-profile {
+    display: flex;
+    align-items: flex-start;
+  }
+
+  .art-coach-portrait {
+    flex: 0 0 clamp(132px, 15vw, 216px);
+    margin: 0;
   }
 }
 

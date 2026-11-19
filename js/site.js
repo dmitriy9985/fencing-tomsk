@@ -46,7 +46,8 @@
   });
 
   more?.addEventListener("focusout", (event) => {
-    if (!more.contains(event.relatedTarget)) more.open = false;
+    // A pointer press can blur the summary before the nested link receives its click.
+    if (event.relatedTarget && !more.contains(event.relatedTarget)) more.open = false;
   });
 
   document.addEventListener("keydown", (event) => {

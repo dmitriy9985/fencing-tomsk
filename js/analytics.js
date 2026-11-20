@@ -1,90 +1,216 @@
 (function () {
   "use strict";
 
-  const counterId = null; // Указать реальный номер после согласования публикации.
-  if (!Number.isSafeInteger(counterId) || counterId <= 0 || location.origin !== "https://fencing-tomsk.ru") return;
+  const counterId = 114258187;
+  const analyticsEnabled = false; // Включать после утверждения документов и разрешения на публикацию.
+  const preferenceKey = "ffto-analytics-v4";
+  const siteOrigin = "https://fencing-tomsk.ru";
+  const publicPages = new Set([
+    "/", "/start/", "/training/", "/news/", "/calendar/", "/results/",
+    "/coaches/", "/organizations/", "/gallery/", "/contacts/", "/privacy/", "/privacy/analytics-consent/"
+  ]);
+  const pagePath = location.pathname.replace(/index\.html$/, "");
+  if (!publicPages.has(pagePath)) return;
 
-  const preferenceKey = "ffto-analytics-v1";
+  const footer = document.querySelector(".footer-bottom");
+  const links = document.createElement("div");
+  links.className = "footer-analytics";
+  links.innerHTML = '<a class="footer-privacy" href="/privacy/">Конфиденциальность</a>';
+  footer?.append(links);
+
+  if (!analyticsEnabled || location.origin !== siteOrigin || !Number.isSafeInteger(counterId) || counterId <= 0) return;
+
+  let tag;
   let active = false;
+  let consentUncertain = false;
+
   function readChoice() {
-    try { return localStorage.getItem(preferenceKey); } catch { return null; }
-  }
-  function saveChoice(choice) {
+    if (consentUncertain) return null;
     try {
+      const saved = localStorage.getItem(preferenceKey);
+      const choice = JSON.parse(saved);
+      if (!Number.isFinite(choice?.at)) return null;
+      if (choice.value === "no") return "no";
+      if (choice.value === "yes" && sessionStorage.getItem(preferenceKey) === saved) return "yes";
+    } catch {
+      return null;
+    }
+    return null;
+  }
+
+  function saveChoice(value) {
+    consentUncertain = true;
+    // Invalidate both copies before writing the new choice. A failed write of
+    // the refusal must not leave a previous grant usable after navigation.
+    try { sessionStorage.removeItem(preferenceKey); } catch { /* Try local storage independently. */ }
+    try { localStorage.removeItem(preferenceKey); } catch { /* The matching tab grant may already be gone. */ }
+
+    try {
+      const choice = JSON.stringify({ value, at: Date.now() });
+      if (value === "yes") {
+        sessionStorage.setItem(preferenceKey, choice);
+        if (sessionStorage.getItem(preferenceKey) !== choice) return false;
+      }
       localStorage.setItem(preferenceKey, choice);
-      return true;
-    } catch { return false; }
+      if (localStorage.getItem(preferenceKey) !== choice) return false;
+    } catch {
+      return false;
+    }
+    consentUncertain = false;
+    return true;
+  }
+
+  function pageUrlForAnalytics() {
+    const url = new URL(pagePath, siteOrigin);
+    const query = new URLSearchParams(location.search);
+    const source = query.get("utm_source");
+    if (query.get("utm_medium") === "messenger" && ["telegram", "whatsapp", "viber", "skype", "wechat"].includes(source)) {
+      url.searchParams.set("utm_medium", "messenger");
+      url.searchParams.set("utm_source", source);
+    }
+    return url.href;
+  }
+
+  function safeReferrer() {
+    if (!document.referrer) return "";
+    try {
+      const referrer = new URL(document.referrer);
+      if (["https:", "http:"].includes(referrer.protocol) && referrer.origin !== siteOrigin) {
+        return referrer.origin + "/";
+      }
+      const path = referrer.pathname.replace(/index\.html$/, "");
+      if (referrer.origin === siteOrigin && publicPages.has(path)) return siteOrigin + path;
+    } catch { /* Do not forward an invalid referrer. */ }
+    return siteOrigin + "/";
   }
 
   function startCounter() {
-    if (active) return;
-    active = true;
-    window.ym = function () { (window.ym.a ||= []).push(arguments); };
-    window.ym.l = Date.now();
-    const tag = document.createElement("script");
-    tag.async = true;
-    tag.referrerPolicy = "no-referrer";
-    tag.src = "https://mc.yandex.ru/metrika/tag.js";
-    document.head.append(tag);
-    window.ym(counterId, "init", {
-      defer: true, webvisor: false, clickmap: false, trackLinks: false,
-      accurateTrackBounce: false, disableYtm: true
-    });
-    window.ym(counterId, "hit", location.origin + location.pathname, {
-      title: document.title, referer: ""
-    });
+    if (tag || readChoice() !== "yes") return;
+
+    const ym = function () { (ym.a ||= []).push(arguments); };
+    ym.l = Date.now();
+    window.ym = ym;
+    const script = document.createElement("script");
+    tag = script;
+    script.async = true;
+    script.referrerPolicy = "no-referrer";
+    script.src = "https://mc.yandex.ru/metrika/tag.js";
+    script.addEventListener("load", () => {
+      if (tag !== script || readChoice() !== "yes") return;
+      window.ym(counterId, "init", {
+        defer: true, webvisor: false, clickmap: false, trackLinks: false,
+        trackHash: false, accurateTrackBounce: false, ecommerce: false,
+        sendTitle: false, disableYtm: true
+      });
+      window.ym(counterId, "hit", pageUrlForAnalytics(), { referer: safeReferrer() });
+      active = true;
+    }, { once: true });
+    document.head.append(script);
   }
 
-  function goal(name) {
-    if (active) window.ym(counterId, "reachGoal", name);
+  function stopCounter(reload = true) {
+    if (!tag) return;
+    const wasActive = active;
+    active = false;
+    tag.remove();
+    tag = null;
+    try {
+      if (wasActive) window.ym(counterId, "destruct");
+    } catch {
+      // Reload below to discard the analytics runtime even if it failed to stop.
+    } finally {
+      if (reload) location.reload();
+    }
   }
 
   const settings = document.createElement("button");
   settings.type = "button";
   settings.className = "analytics-settings";
   settings.textContent = "Настройки аналитики";
-  document.querySelector(".footer-bottom")?.append(settings);
+  settings.setAttribute("aria-controls", "analytics-notice");
+  settings.setAttribute("aria-expanded", "false");
+  links.append(settings);
 
-  const dialog = document.createElement("dialog");
-  dialog.className = "analytics-dialog";
-  dialog.setAttribute("aria-labelledby", "analytics-heading");
-  dialog.innerHTML = `
-    <h2 id="analytics-heading">Аналитика сайта</h2>
-    <p>С вашего согласия мы используем Яндекс Метрику, чтобы узнать, какие разделы посещают и как часто переходят к контактам. Метрика использует cookies. Выбор можно изменить внизу страницы.</p>
-    <p><a href="/privacy/">Политика обработки персональных данных</a></p>
+  const notice = document.createElement("section");
+  notice.id = "analytics-notice";
+  notice.className = "analytics-notice";
+  notice.hidden = true;
+  notice.setAttribute("aria-labelledby", "analytics-heading");
+  notice.innerHTML = `
+    <h2 id="analytics-heading" tabindex="-1">Аналитика сайта</h2>
+    <p>С вашего согласия Яндекс Метрика использует cookies и данные о посещении для статистики. Выбор можно изменить в подвале сайта.</p>
+    <p><a href="/privacy/analytics-consent/">Согласие на аналитику</a></p>
     <div class="analytics-actions">
       <button type="button" data-choice="no">Отклонить</button>
       <button type="button" data-choice="yes">Разрешить аналитику</button>
     </div>
     <p role="status"></p>`;
-  document.body.append(dialog);
-  settings.addEventListener("click", () => dialog.showModal());
-  dialog.addEventListener("click", (event) => {
+  document.body.append(notice);
+  const status = notice.querySelector('[role="status"]');
+
+  function showNotice(show) {
+    notice.hidden = !show;
+    settings.setAttribute("aria-expanded", String(show));
+  }
+
+  settings.addEventListener("click", () => {
+    const opening = notice.hidden;
+    showNotice(opening);
+    if (opening) notice.querySelector("h2").focus();
+  });
+  notice.addEventListener("keydown", event => {
+    if (event.key !== "Escape") return;
+    showNotice(false);
+    settings.focus();
+  });
+  notice.addEventListener("click", event => {
     const choice = event.target.closest("[data-choice]")?.dataset.choice;
     if (!choice) return;
     if (!saveChoice(choice)) {
-      dialog.querySelector('[role="status"]').textContent = "Браузер не сохранил выбор. Настройка не изменилась.";
+      stopCounter(false);
+      status.textContent = "Аналитика отключена. Если браузер не сохраняет выбор, очистите данные этого сайта в настройках браузера.";
       return;
     }
-    dialog.close();
+    const restoreFocus = notice.contains(document.activeElement);
+    showNotice(false);
+    status.textContent = "";
+    if (restoreFocus) settings.focus({ preventScroll: true });
     if (choice === "yes") startCounter();
-    else if (active) {
-      active = false;
-      window.ym(counterId, "destruct");
-      location.reload();
-    }
+    else stopCounter();
   });
-  document.addEventListener("click", (event) => {
+
+  function syncChoice() {
+    const choice = readChoice();
+    if (choice === "yes") startCounter();
+    else stopCounter(choice === "no");
+    showNotice(choice === null);
+  }
+
+  window.addEventListener("storage", event => {
+    if (event.key === preferenceKey || event.key === null) syncChoice();
+  });
+  window.addEventListener("pageshow", event => {
+    if (event.persisted) syncChoice();
+  });
+  document.addEventListener("click", event => {
+    if (!active || readChoice() !== "yes") return;
     const link = event.target.closest("a[href]");
     if (!link) return;
     const href = link.getAttribute("href");
-    if (href.startsWith("tel:")) goal("contact_phone");
-    else if (href.startsWith("mailto:")) goal("contact_email");
-    else if (href === "/contacts/") goal("contact_open");
-    else if (href === "/calendar/") goal("calendar_open");
-    else if (href === "#training-schedule") goal("training_schedule_open");
+    let name;
+    if (pagePath === "/start/" && link.dataset.analyticsGoal === "enrollment_interest") {
+      name = "enrollment_interest";
+    } else if (pagePath === "/start/" && link.dataset.analyticsGoal === "training_schedule_open") {
+      name = "training_schedule_open";
+    } else if (href.startsWith("tel:")) {
+      name = "contact_phone";
+    } else if (href.startsWith("mailto:")) {
+      name = "contact_email";
+    } else if (href === "/contacts/") {
+      name = "contact_open";
+    }
+    if (name) window.ym(counterId, "reachGoal", name);
   });
 
-  if (readChoice() === "yes") startCounter();
-  else if (readChoice() !== "no") dialog.showModal();
+  syncChoice();
 })();

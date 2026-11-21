@@ -248,7 +248,7 @@
     const today = new Intl.DateTimeFormat("sv-SE", {
       timeZone: "Asia/Tomsk", year: "numeric", month: "2-digit", day: "2-digit"
     }).format(new Date());
-    const columns = "id,title,start_date,end_date,date_precision,date_month,date_year,sort_date,location,description,category_label,short_label,published,created_at";
+    const columns = "id,title,start_date,end_date,date_precision,date_month,date_year,sort_date,location,category_label,published,created_at";
     const endpoint = new URL("/rest/v1/competition_events", config.url);
     endpoint.search = new URLSearchParams({
       select: columns,
@@ -410,7 +410,7 @@
     }
     fact("Где", item.location);
     fact("Категория соревнования", item.category_label);
-    for (const [label, time] of [["Сбор", item.meeting_time], ["Начало", item.start_time]]) {
+    for (const [label, time] of [["Сбор", item.meeting_time], ["Первый старт", item.start_time]]) {
       if (time) fact(label, time.slice(0, 5) + (item.time_zone === "Asia/Tomsk" ? " по Томску" : " по местному времени"));
     }
     fact("Связь с организатором", item.organizer_contact);
@@ -520,32 +520,22 @@
     link.dataset.eventId = String(item.id);
     link.textContent = item.title || "Без названия";
     title.append(link);
-    const meta = document.createElement("div");
-    meta.className = "event-meta";
-    if (item.location) {
+    main.append(category, title);
+    const place = item.location?.split(",", 1)[0].trim() || item.location?.trim();
+    if (place) {
+      const meta = document.createElement("div");
+      meta.className = "event-meta";
       const location = document.createElement("span");
       location.className = "event-location";
-      location.textContent = item.location;
+      location.textContent = place;
       meta.append(location);
+      main.append(meta);
     }
-    if (item.description) {
-      const description = document.createElement("span");
-      description.className = "event-description";
-      description.textContent = item.description;
-      meta.append(description);
-    }
-    main.append(category, title, meta);
 
-    const code = document.createElement("div");
-    code.className = "event-code";
-    if (item.short_label) {
-      code.textContent = item.short_label;
-      if (item.short_label.length > 8) {
-        code.classList.add("event-code-wide");
-      }
-    } else {
-      code.append(createIcon("/images/icons/arrow-right.svg", "event-arrow"));
-    }
+    const code = document.createElement("span");
+    code.className = "event-code event-code-wide";
+    code.textContent = "Подробнее";
+    code.setAttribute("aria-hidden", "true");
     article.append(date, main, code);
     return article;
   }

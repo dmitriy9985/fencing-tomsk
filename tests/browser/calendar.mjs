@@ -174,6 +174,15 @@ async function run() {
       await row(8).screenshot({ path: output + "/home-" + width + ".png" });
 
       if (live) {
+        const calendarScript = p.waitForResponse((response) =>
+          response.url().includes("/admin/calendar.js?v=calendar-participants") &&
+          response.ok(),
+        );
+        await visit("/admin/#calendar");
+        await calendarScript;
+        await p.locator("#login-panel").waitFor({ state: "visible" });
+        assert.equal(await p.locator("#calendar-participant-groups").count(), 1);
+        assert.equal(await p.locator("#calendar-weapon").count(), 1);
         assert.deepEqual(errors, []);
         log.push({ width, initialHeight, modal: true });
         await ctx.close();

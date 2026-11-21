@@ -112,11 +112,15 @@ async function run() {
       const visit = (path) =>
         p.goto(origin + path, { waitUntil: "domcontentloaded" });
       const activate = (loc) => (width < 500 ? loc.tap() : loc.click());
-      const assertWidth = async () =>
-        assert.equal(
-          await p.evaluate(() => document.documentElement.scrollWidth),
-          width,
-        );
+      const assertWidth = async () => {
+        const { viewport, content, scroll } = await p.evaluate(() => ({
+          viewport: window.innerWidth,
+          content: document.documentElement.clientWidth,
+          scroll: document.documentElement.scrollWidth,
+        }));
+        assert.equal(viewport, width);
+        assert.equal(scroll, content, "no horizontal overflow");
+      };
       await visit("/calendar/");
       const row = (id) =>
         p

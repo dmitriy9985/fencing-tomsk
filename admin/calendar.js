@@ -41,7 +41,8 @@
     save: document.getElementById("calendar-save-button"),
     cancel: document.getElementById("calendar-cancel-button"),
     refresh: document.getElementById("calendar-refresh-button"),
-    sort: document.getElementById("calendar-sort"),
+    period: document.getElementById("calendar-period"),
+    publication: document.getElementById("calendar-publication"),
     list: document.getElementById("calendar-list"),
     previewDate: document.getElementById("calendar-preview-date"),
     previewTitle: document.getElementById("calendar-preview-title"),
@@ -65,7 +66,8 @@
     elements.cancel.addEventListener("click", () => closeEditor(true));
     elements.form.addEventListener("submit", saveItem);
     elements.refresh.addEventListener("click", loadItems);
-    elements.sort.addEventListener("change", renderList);
+    elements.period.addEventListener("change", renderList);
+    elements.publication.addEventListener("change", renderList);
     elements.datePrecision.addEventListener("change", () => {
       syncDateFields();
       if (!elements.editor.hidden) {
@@ -84,6 +86,8 @@
   async function activate() {
     if (!loaded) {
       await loadItems();
+    } else {
+      renderList();
     }
   }
 
@@ -119,10 +123,11 @@
       elements.list.replaceChildren(api.createStateBlock("Событий пока нет. Нажмите «Добавить событие»."));
       return;
     }
-    const sorted = [...items].sort((left, right) => {
-      const direction = elements.sort.value === "desc" ? -1 : 1;
-      return calendarSortKey(left).localeCompare(calendarSortKey(right)) * direction;
-    });
+    const sorted = window.CalendarFilter.select(items, elements.period.value, elements.publication.value);
+    if (sorted.length === 0) {
+      elements.list.replaceChildren(api.createStateBlock("Событий по выбранным фильтрам нет."));
+      return;
+    }
     const fragment = document.createDocumentFragment();
     sorted.forEach((item) => fragment.append(createRow(item)));
     elements.list.replaceChildren(fragment);
@@ -164,8 +169,9 @@
     editingItem = null;
     elements.form.reset();
     elements.datePrecision.value = "exact";
-    elements.startDate.value = api.todayAsInputValue();
-    elements.dateYear.value = String(new Date().getFullYear());
+    const today = window.CalendarFilter.today();
+    elements.startDate.value = today;
+    elements.dateYear.value = today.slice(0, 4);
     elements.editorTitle.textContent = "Новое событие";
     elements.editor.hidden = false;
     api.setDirty(sectionName, false);
@@ -414,16 +420,6 @@
     return value === "month" || value === "approximate" ? value : "exact";
   }
 
-  function calendarSortKey(item) {
-    if (item.sort_date) {
-      return item.sort_date;
-    }
-    if (normalizePrecision(item.date_precision) === "month" && item.date_year && item.date_month) {
-      return `${item.date_year}-${String(item.date_month).padStart(2, "0")}-15`;
-    }
-    return item.start_date || "9999-12-31";
-  }
-
   function formatEventDate(item) {
     const precision = normalizePrecision(item.date_precision);
     if (precision === "month") {
@@ -478,6 +474,8 @@
 
   function reset() {
     items = [];
+    elements.period.value = "current";
+    elements.publication.value = "all";
     loaded = false;
     working = false;
     discardChanges();

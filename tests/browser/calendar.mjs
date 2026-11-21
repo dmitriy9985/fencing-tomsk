@@ -119,7 +119,7 @@ async function run() {
           scroll: document.documentElement.scrollWidth,
         }));
         assert.equal(viewport, width);
-        assert.equal(scroll, content, "no horizontal overflow");
+        assert.ok(scroll <= content, "no horizontal overflow");
       };
       await visit("/calendar/");
       const row = (id) =>
@@ -181,7 +181,9 @@ async function run() {
         ]);
         assert.equal(download.suggestedFilename(), "ffto-event-" + id + ".ics");
         await assertWidth();
-        await card.locator(".event-calendar-options").screenshot({ path: output + "/export-" + id + "-" + width + ".png" });
+        const options = card.locator(".event-calendar-options");
+        assert.ok(await options.evaluate(panel => panel.scrollWidth <= panel.clientWidth));
+        await options.screenshot({ path: output + "/export-" + id + "-" + width + ".png" });
         if (!live) {
           // Validate the actual target navigation and its HTTP response without
           // inferring a native iOS import from Chromium's download behavior.

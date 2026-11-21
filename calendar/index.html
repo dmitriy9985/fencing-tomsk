@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Календарь соревнований Федерации фехтования Томской области."><meta name="referrer" content="no-referrer">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
-  <title>Календарь · Федерация фехтования Томской области</title><link rel="icon" type="image/png" sizes="16x16" href="/images/logo/logoffto-16.png"><link rel="icon" type="image/png" sizes="32x32" href="/images/logo/logoffto.png?v=3.1"><link rel="stylesheet" href="/styles.css?v=3.2">
-  <script defer src="/js/site.js"></script><script defer src="/js/analytics.js"></script><script defer src="/js/supabase-config.js"></script><script defer src="/js/site-content.js?v=3.2"></script>
+  <title>Календарь · Федерация фехтования Томской области</title><link rel="icon" type="image/png" sizes="16x16" href="/images/logo/logoffto-16.png"><link rel="icon" type="image/png" sizes="32x32" href="/images/logo/logoffto.png?v=3.1"><link rel="stylesheet" href="/styles.css?v=3.3">
+  <script defer src="/js/site.js"></script><script defer src="/js/analytics.js"></script><script defer src="/js/supabase-config.js"></script><script defer src="/js/event-calendar.js?v=3.2"></script><script defer src="/js/site-content.js?v=3.3"></script>
 </head>
 <body data-page="calendar">
   <a class="skip-link" href="#main-content">Перейти к содержанию</a>
@@ -16,6 +16,15 @@
   <main id="main-content">
     <section class="page-hero"><div class="wrap page-hero-inner"><div><p class="kicker kicker-light">Соревнования</p><h1>Календарь</h1><p>Опубликованные турниры и соревнования с участием спортсменов Томской области.</p></div><img class="page-hero-icon" src="/images/icons/calendar.svg" alt=""></div></section>
     <section class="section calendar-section page-section"><div class="wrap"><div class="section-heading"><div><h2>Ближайшие соревнования</h2></div><p class="section-note">События расположены по дате проведения</p></div><div class="event-list" id="calendar-list" aria-live="polite"><p class="empty-state"><noscript><span>Для просмотра соревнований включите JavaScript.</span></noscript><span class="calendar-loading">Загружаем календарь…</span></p></div><details id="calendar-past" hidden><summary>Прошедшие соревнования</summary><div class="event-list"></div></details></div></section>
+    <dialog id="calendar-dialog" aria-label="Карточка соревнования">
+      <div class="calendar-dialog-panel">
+        <div class="calendar-dialog-actions">
+          <a class="result-action" href="/calendar/">Открыть отдельную страницу</a>
+          <button type="button" aria-label="Закрыть карточку" autofocus>×</button>
+        </div>
+        <article class="tournament-card" aria-live="polite"></article>
+      </div>
+    </dialog>
   </main>
   <footer class="site-footer"><div class="wrap footer-main"><div class="footer-brand"><img src="/images/logo/ffto-emblem-tgpu-144.webp?v=3cd7a2013566" width="144" height="144" alt=""><div><b>Федерация фехтования<br>Томской области</b><p>Официальный информационный ресурс региональной спортивной общественной организации.</p></div></div><div><h3>Разделы</h3><div class="footer-links"><a href="/news/">Новости</a><a href="/calendar/">Календарь</a><a href="/results/">Результаты</a><a href="/coaches/">Тренеры</a><a href="/organizations/">Организации</a><a href="/gallery/">Галерея</a><a href="/support/">Поддержать федерацию</a></div></div><div><h3>Контакты</h3><div class="footer-contacts"><a class="footer-contact-item" href="tel:+79833410327"><img src="/images/icons/phone.svg" alt="" aria-hidden="true"><span>8 (983) 341-03-27</span></a><a class="footer-contact-item" href="mailto:fencingtomsk@mail.ru"><img src="/images/icons/mail.svg" alt="" aria-hidden="true"><span>fencingtomsk@mail.ru</span></a><span class="footer-contact-item"><img src="/images/icons/location.svg" alt="" aria-hidden="true"><span>Томск, пр. Ленина, 207</span></span></div></div></div><div class="wrap footer-bottom"><span>© 2026 Федерация фехтования Томской области</span><span>Официальный сайт</span></div></footer>
 </body>

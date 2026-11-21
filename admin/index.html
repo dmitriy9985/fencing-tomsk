@@ -8,14 +8,15 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self'; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; font-src 'self'; base-uri 'self'; form-action 'self'">
   <title>Управление сайтом — Федерация фехтования Томской области</title>
   <link rel="icon" type="image/png" sizes="16x16" href="../images/logo/logoffto-16.png"><link rel="icon" type="image/png" sizes="32x32" href="../images/logo/logoffto.png?v=3.1">
-  <link rel="stylesheet" href="admin.css?v=3.2">
+  <link rel="stylesheet" href="admin.css?v=3.3">
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
   <script defer src="../js/supabase-config.js"></script>
   <link rel="stylesheet" href="../training/training.css">
   <script defer src="shared.js"></script>
   <script defer src="../js/training-schedule.js"></script>
   <script defer src="training.js"></script>
-  <script defer src="calendar.js?v=3.2"></script>
+  <script defer src="calendar-filter.js?v=3.3"></script>
+  <script defer src="calendar.js?v=3.3"></script>
   <script defer src="results.js"></script>
   <script defer src="gallery.js"></script>
   <script defer src="home.js"></script>
@@ -321,10 +322,13 @@
 
             <section class="panel list-panel">
               <div class="list-heading">
-                <h2>Все события</h2>
-                <div class="heading-actions">
-                  <label class="compact-control">Сортировка
-                    <select id="calendar-sort"><option value="asc">Сначала ближайшие</option><option value="desc">Сначала поздние</option></select>
+                <h2>События календаря</h2>
+                <div class="heading-actions calendar-filters">
+                  <label class="compact-control">Период
+                    <select id="calendar-period"><option value="current">Актуальные</option><option value="past">Прошедшие</option><option value="all">Все</option></select>
+                  </label>
+                  <label class="compact-control">Публикация
+                    <select id="calendar-publication"><option value="all">Все</option><option value="published">Опубликованные</option><option value="draft">Черновики</option></select>
                   </label>
                   <button id="calendar-refresh-button" class="button button-secondary button-small" type="button">Обновить</button>
                 </div>

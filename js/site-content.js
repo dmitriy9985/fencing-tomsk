@@ -4,6 +4,7 @@
   const config = window.SUPABASE_CONFIG;
   const calendar = document.querySelector("#calendar-list");
   const detail = document.getElementById("event-detail");
+  const dialog = document.getElementById("calendar-dialog");
   const calendarPage = document.body.dataset.page === "calendar";
 
   if (!isConfigured(config) || (!calendarPage && typeof window.supabase?.createClient !== "function")) {
@@ -28,8 +29,12 @@
     loaders.push(loadNews().catch((error) => { showSnapshotNotice("news-list"); throw error; }));
   }
   if (detail) {
-    loaders.push(loadEventDetail().catch(() => detailMessage("Не удалось загрузить соревнование. Обновите страницу позже.")));
+    const id = new URLSearchParams(location.search).get("id");
+    loadCard(id, detail).then(title => {
+      if (title) document.title = title + " · Федерация фехтования Томской области";
+    });
   }
+  if (dialog && typeof dialog.showModal === "function") setupCalendarDialog();
   if (calendar) {
     loaders.push(loadCalendar().catch((error) => { showCalendarError(); throw error; }));
   }
@@ -73,14 +78,17 @@
     if (content.hero_image_url && content.hero_image_url.trim()) {
       const image = document.querySelector("#hero-image");
       const fallbackSource = image.getAttribute("src");
+      const fallbackSet = image.getAttribute("srcset");
       const fallbackAlt = image.alt;
       const resolvedUrl = resolveUrl(content.hero_image_url);
 
       if (resolvedUrl) {
         image.addEventListener("error", () => {
           image.src = fallbackSource;
+          if (fallbackSet) image.srcset = fallbackSet;
           image.alt = fallbackAlt;
         }, { once: true });
+        image.removeAttribute("srcset");
         image.src = resolvedUrl;
         image.alt = content.hero_image_alt || "Главное изображение Федерации фехтования Томской области";
       }
@@ -274,16 +282,15 @@
     renderEvents(calendar, limit ? upcoming.slice(0, limit) : upcoming, "Ближайших соревнований пока нет.");
   }
 
-  function detailMessage(message) {
-    const title = document.createElement("h1");
+  function cardMessage(target, message) {
+    const title = document.createElement(target === detail ? "h1" : "h2");
     title.textContent = "Соревнование";
-    detail.replaceChildren(title, createEmptyState(message));
+    target.replaceChildren(title, createEmptyState(message));
   }
 
-  async function loadEventDetail() {
-    const id = new URLSearchParams(location.search).get("id");
+  async function loadCard(id, target, signal) {
     if (!/^[1-9]\d{0,18}$/.test(id || "")) {
-      detailMessage("Соревнование не найдено.");
+      cardMessage(target, "Соревнование не найдено.");
       return;
     }
     const endpoint = new URL("/rest/v1/competition_events", config.url);
@@ -292,13 +299,89 @@
       id: "eq." + id, published: "eq.true", "results.published": "eq.true",
       "results.news.published": "eq.true", "results.order": "competition_date.desc,id.desc"
     });
-    const response = await fetch(endpoint, { headers: { apikey: config.anonKey } });
-    if (!response.ok) throw new Error("HTTP " + response.status);
-    const [item] = await response.json();
-    if (!item) {
-      detailMessage("Соревнование не найдено или снято с публикации.");
-      return;
+    try {
+      const response = await fetch(endpoint, { headers: { apikey: config.anonKey }, signal });
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      const [item] = await response.json();
+      if (signal?.aborted) return;
+      if (!item) {
+        cardMessage(target, "Соревнование не найдено или снято с публикации.");
+        return;
+      }
+      renderCard(item, target);
+      return item.title;
+    } catch {
+      if (!signal?.aborted) cardMessage(target, "Не удалось загрузить соревнование. Обновите страницу позже.");
     }
+  }
+
+  function setupCalendarDialog() {
+    const card = dialog.querySelector(".tournament-card");
+    const close = dialog.querySelector("button");
+    const permalink = dialog.querySelector("a");
+    let request;
+    let opener;
+    let activeId;
+    let dismissing = false;
+
+    function syncDialog() {
+      const id = history.state?.calendarEvent;
+      if (id === activeId) return;
+      activeId = id;
+      dismissing = false;
+      request?.abort();
+      const calendarFile = card.querySelector("a[download]");
+      if (calendarFile) URL.revokeObjectURL(calendarFile.href);
+      if (!id) {
+        if (!dialog.open) return;
+        dialog.close();
+        document.documentElement.classList.remove("calendar-dialog-open");
+        card.replaceChildren();
+        opener?.focus({ preventScroll: true });
+        return;
+      }
+      opener = document.querySelector(`a.event-detail-link[data-event-id="${CSS.escape(id)}"]`) || opener;
+      permalink.href = "/calendar/event/?id=" + encodeURIComponent(id);
+      cardMessage(card, "Загружаем соревнование…");
+      if (!dialog.open) {
+        document.documentElement.classList.add("calendar-dialog-open");
+        dialog.showModal();
+      }
+      dialog.scrollTop = 0;
+      request = new AbortController();
+      void loadCard(id, card, request.signal);
+    }
+
+    function dismiss() {
+      if (dismissing || !dialog.open) return;
+      dismissing = true;
+      history.back();
+    }
+
+    document.querySelector(".calendar-section").addEventListener("click", event => {
+      const link = event.target.closest("a.event-detail-link");
+      if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
+      event.preventDefault();
+      opener = link;
+      history.pushState({ ...history.state, calendarEvent: link.dataset.eventId }, "");
+      syncDialog();
+    });
+    close.addEventListener("click", dismiss);
+    dialog.addEventListener("cancel", event => {
+      event.preventDefault();
+      dismiss();
+    });
+    let backdropPressed = false;
+    dialog.addEventListener("pointerdown", event => { backdropPressed = event.target === dialog; });
+    dialog.addEventListener("click", event => {
+      if (backdropPressed && event.target === dialog) dismiss();
+      backdropPressed = false;
+    });
+    window.addEventListener("popstate", syncDialog);
+    syncDialog();
+  }
+
+  function renderCard(item, target) {
     const content = document.createDocumentFragment();
     function element(tag, text) {
       const node = document.createElement(tag);
@@ -320,8 +403,7 @@
     }
     const date = element("p", formatEventDateLabel(item));
     date.className = "event-category";
-    content.append(date, element("h1", item.title));
-    document.title = item.title + " · Федерация фехтования Томской области";
+    content.append(date, element(target === detail ? "h1" : "h2", item.title));
     const facts = document.createElement("dl");
     function fact(label, value) {
       if (value) facts.append(element("dt", label), element("dd", value));
@@ -365,7 +447,7 @@
       action.download = "ffto-event-" + item.id + ".ics";
       if (!item.start_time && !item.meeting_time) content.append(element("small", "На весь день. Время уточняется."));
     }
-    detail.replaceChildren(content);
+    target.replaceChildren(content);
   }
 
   function renderEvents(container, items, emptyMessage) {
@@ -373,7 +455,7 @@
   }
 
   function showCalendarError() {
-    if (detail) detailMessage("Карточка временно недоступна.");
+    if (detail) cardMessage(detail, "Карточка временно недоступна.");
     if (calendar) {
       calendar.replaceChildren(createEmptyState("Календарь временно недоступен. Попробуйте обновить страницу позже."));
     }
@@ -435,6 +517,7 @@
     const link = document.createElement("a");
     link.href = "/calendar/event/?id=" + encodeURIComponent(item.id);
     link.className = "event-detail-link";
+    link.dataset.eventId = String(item.id);
     link.textContent = item.title || "Без названия";
     title.append(link);
     const meta = document.createElement("div");

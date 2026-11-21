@@ -28,5 +28,11 @@ insert into competition_events (id,title,start_date,published,location,category_
  (101,'Турнир без меток','2026-12-25',true,'Томск','Турнир','');
 \ir ../../supabase/calendar-participants-2026-11.sql
 
+update competition_events set end_date = '2026-12-20',
+  participant_groups = '[{"label":"Дети","birth_years":"2012–2017"}]', weapon_label = 'Шпага' where id = 11;
+update competition_events set participant_groups = '[{"label":"Мужчины и женщины"}]',
+  weapon_label = 'Шпага' where id = 10;
+
 -- Keep the fixture in the upcoming list on future test runs.
-update competition_events set start_date = start_date + (current_date - date '2026-11-22');
+update competition_events set start_date = start_date + (current_date - date '2026-11-22'),
+  end_date = end_date + (current_date - date '2026-11-22');

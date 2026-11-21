@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
 import { mkdir } from "node:fs/promises";
 import { chromium } from "playwright";
+import { createCalendarHandler } from "../../supabase/functions/calendar-event-ics/handler.mjs";
 
 const live = process.env.QA_TARGET === "production";
 const output = "calendar-browser-artifacts";
@@ -47,6 +48,8 @@ async function run() {
         acceptDownloads: true,
       });
       if (!live) {
+        const appleHandler = createCalendarHandler({ supabaseUrl: endpoint, anonKey: "fixture",
+          fetchEvent: (url) => fetch(endpoint + url.pathname.slice(8) + url.search) });
         await ctx.route("**/js/supabase-config.js*", (r) =>
           r.fulfill({
             contentType: "application/javascript",
@@ -72,6 +75,11 @@ async function run() {
                 user,
               },
             });
+          if (url.pathname.startsWith("/functions/v1/calendar-event-ics/")) {
+            const response = await appleHandler(new Request(url, { method: request.method() }));
+            return r.fulfill({ status: response.status, headers: Object.fromEntries(response.headers),
+              body: await response.text() });
+          }
           assert.match(url.pathname, /^\/rest\/v1\//);
           const headers = { ...request.headers() };
           for (const k of [
@@ -122,8 +130,8 @@ async function run() {
         "Шпага",
       ]);
       assert.deepEqual(await badges(9), ["Мужчины и женщины", "Шпага"]);
-      assert.deepEqual(await badges(10), ["Взрослые"]);
-      assert.deepEqual(await badges(11), ["2012–2017 г.р."]);
+      assert.deepEqual(await badges(10), ["Мужчины и женщины", "Шпага"]);
+      assert.deepEqual(await badges(11), ["Дети · 2012–2017 г.р.", "Шпага"]);
       if (!live) {
         assert.equal(await row(12).count(), 0);
         assert.equal(await row(101).locator(".event-participants").count(), 0);
@@ -148,6 +156,39 @@ async function run() {
         })
         .waitFor();
       assert.match(await dialog.innerText(), /Гаранина/);
+      const checkExport = async (card, id) => {
+        await activate(card.locator("summary", { hasText: "Добавить в календарь" }));
+        const apple = card.getByRole("link", { name: "Apple Календарь" });
+        const appleUrl = await apple.getAttribute("href");
+        assert.ok(appleUrl.endsWith("/calendar-event-ics/" + id + ".ics"));
+        assert.equal(await apple.getAttribute("download"), null);
+        const google = new URL(await card.getByRole("link", { name: "Google Календарь" }).getAttribute("href"));
+        assert.equal(google.host, "calendar.google.com");
+        assert.equal(google.searchParams.get("action"), "TEMPLATE");
+        assert.match(google.searchParams.get("details"), new RegExp("id=" + id + "$"));
+        if (id === 11) {
+          const [start, end] = google.searchParams.get("dates").split("/");
+          const parse = date => Date.parse(date.slice(0,4) + "-" + date.slice(4,6) + "-" + date.slice(6) + "T00:00:00Z");
+          assert.equal(parse(end) - parse(start), 2 * 86400000);
+        }
+        const [download] = await Promise.all([
+          p.waitForEvent("download"),
+          activate(card.getByRole("link", { name: "Скачать .ics" })),
+        ]);
+        assert.equal(download.suggestedFilename(), "ffto-event-" + id + ".ics");
+        await assertWidth();
+        await card.locator(".event-calendar-options").screenshot({ path: output + "/export-" + id + "-" + width + ".png" });
+        if (!live) {
+          // Validate the actual target navigation and its HTTP response without
+          // inferring a native iOS import from Chromium's download behavior.
+          const [navigation] = await Promise.all([
+            p.waitForRequest(request => request.url() === appleUrl),
+            activate(apple),
+          ]);
+          assert.ok(navigation.isNavigationRequest());
+        }
+      };
+      await checkExport(dialog, 8);
       await activate(dialog.getByRole("button", { name: "Закрыть карточку" }));
       await dialog.waitFor({ state: "hidden" });
       assert.ok(await link8.evaluate((a) => a === document.activeElement));
@@ -163,6 +204,7 @@ async function run() {
           .getByRole("heading", { name: title })
           .waitFor();
         await assertWidth();
+        if (id === 11) await checkExport(p.locator("#event-detail"), id);
       }
       await visit("/");
       await row(8).waitFor();

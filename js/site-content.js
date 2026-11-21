@@ -308,7 +308,11 @@
         cardMessage(target, "Соревнование не найдено или снято с публикации.");
         return;
       }
-      renderCard(item, target);
+      const exportModule = item.date_precision === "exact"
+        ? await import("./event-calendar.mjs?v=calendar-export").catch(() => null)
+        : null;
+      if (signal?.aborted) return;
+      renderCard(item, target, exportModule);
       return item.title;
     } catch {
       if (!signal?.aborted) cardMessage(target, "Не удалось загрузить соревнование. Обновите страницу позже.");
@@ -381,7 +385,7 @@
     syncDialog();
   }
 
-  function renderCard(item, target) {
+  function renderCard(item, target, exportModule) {
     const content = document.createDocumentFragment();
     function element(tag, text) {
       const node = document.createElement(tag);
@@ -434,18 +438,35 @@
       for (const [newsId, title] of news) link(block, "Новость · " + title, "/news/?id=" + newsId);
     }
     // A bad time zone in imported data must not hide the rest of the card.
-    let file;
     try {
-      file = window.EventCalendar.build(item);
+      const file = exportModule?.build(item);
+      if (file) {
+        const options = document.createElement("details");
+        options.className = "event-calendar-options";
+        const toggle = element("summary", "Добавить в календарь");
+        toggle.className = "button button-red";
+        options.append(toggle);
+
+        const choices = document.createElement("div");
+        choices.className = "event-calendar-choices";
+        const appleUrl = new URL(
+          "/functions/v1/calendar-event-ics/" + encodeURIComponent(item.id) + ".ics", config.url
+        );
+        link(choices, "Apple Календарь", appleUrl.href);
+        link(choices, "Google Календарь", exportModule.googleCalendarUrl(item));
+        const downloadUrl = URL.createObjectURL(new Blob([file], { type: "text/calendar;charset=utf-8" }));
+        link(choices, "Скачать .ics", downloadUrl).download = "ffto-event-" + item.id + ".ics";
+        options.append(choices);
+        if (!item.start_time && !item.meeting_time) {
+          options.append(element("small", "На весь день. Время уточняется."));
+        }
+        options.append(element("small",
+          "На iPhone откройте ссылку Apple в Safari. Если файл скачался, откройте его из загрузок. " +
+          "Если кнопки добавления нет, откройте .ics как вложение в приложении «Почта»."));
+        content.append(options);
+      }
     } catch (error) {
-      console.warn("Не удалось подготовить календарный файл.", error);
-    }
-    if (file) {
-      const url = URL.createObjectURL(new Blob([file], { type: "text/calendar;charset=utf-8" }));
-      const action = link(content, "Добавить в календарь", url);
-      action.className = "button button-red";
-      action.download = "ffto-event-" + item.id + ".ics";
-      if (!item.start_time && !item.meeting_time) content.append(element("small", "На весь день. Время уточняется."));
+      console.warn("Не удалось подготовить экспорт в календарь.", error);
     }
     target.replaceChildren(content);
   }

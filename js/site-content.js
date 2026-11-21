@@ -147,7 +147,7 @@
 
     const body = document.createElement("div");
     body.className = "news-featured-body";
-    appendNewsContent(body, item, !preview);
+    appendNewsContent(body, item, preview);
     article.append(body);
     return article;
   }
@@ -158,7 +158,7 @@
 
     const content = document.createElement("div");
     content.className = "news-row-content";
-    appendNewsContent(content, item, !preview);
+    appendNewsContent(content, item, preview);
 
     const arrow = createIcon("/images/icons/arrow-right.svg", "row-arrow");
 
@@ -195,7 +195,7 @@
     return article;
   }
 
-  function appendNewsContent(container, item, allowDetails) {
+  function appendNewsContent(container, item, preview) {
     const time = document.createElement("time");
     if (item.date) {
       time.dateTime = item.date;
@@ -203,14 +203,23 @@
     time.textContent = item.date_label || formatLongDate(item.date);
 
     const title = document.createElement("h3");
-    title.textContent = item.title || "Без заголовка";
+    const titleText = item.title || "Без заголовка";
+    if (preview) {
+      const link = document.createElement("a");
+      link.className = "home-news-link";
+      link.href = "/news/?id=" + encodeURIComponent(item.id);
+      link.textContent = titleText;
+      title.append(link);
+    } else {
+      title.textContent = titleText;
+    }
 
     const summaryText = (item.summary || item.content || "").trim();
     const summary = document.createElement("p");
     summary.textContent = summaryText;
     container.append(time, title, summary);
 
-    if (allowDetails && item.content && item.content.trim() && item.content.trim() !== summaryText) {
+    if (!preview && item.content && item.content.trim() && item.content.trim() !== summaryText) {
       const details = document.createElement("details");
       details.className = "news-details";
       const toggle = document.createElement("summary");

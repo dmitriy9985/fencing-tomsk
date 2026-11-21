@@ -216,6 +216,7 @@ async function run() {
       ]);
       assert.equal(updated.status(), 200, await updated.text());
       await p.locator("#calendar-editor").waitFor({ state: "hidden" });
+      await p.getByText("Событие сохранено.", { exact: true }).waitFor();
       await visit("/calendar/");
       await row(8).waitFor();
       assert.deepEqual(await badges(8), [
@@ -247,6 +248,7 @@ async function run() {
       );
       await activate(p.locator("#calendar-save-button"));
       await p.locator("#calendar-editor").waitFor({ state: "hidden" });
+      await p.getByText("Событие сохранено.", { exact: true }).waitFor();
       assert.deepEqual(errors, []);
       log.push({
         width,
@@ -255,6 +257,7 @@ async function run() {
         modal: true,
         adminSave: true,
       });
+      await ctx.unrouteAll({ behavior: "wait" });
       await ctx.close();
     }
     return log;

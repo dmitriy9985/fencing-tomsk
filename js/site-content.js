@@ -3,6 +3,7 @@
 
   const config = window.SUPABASE_CONFIG;
   const calendar = document.querySelector("#calendar-list");
+  const detail = document.getElementById("event-detail");
   const calendarPage = document.body.dataset.page === "calendar";
 
   if (!isConfigured(config) || (!calendarPage && typeof window.supabase?.createClient !== "function")) {
@@ -25,6 +26,9 @@
   }
   if (document.querySelector("#news-list")) {
     loaders.push(loadNews().catch((error) => { showSnapshotNotice("news-list"); throw error; }));
+  }
+  if (detail) {
+    loaders.push(loadEventDetail().catch(() => detailMessage("Не удалось загрузить соревнование. Обновите страницу позже.")));
   }
   if (calendar) {
     loaders.push(loadCalendar().catch((error) => { showCalendarError(); throw error; }));
@@ -252,13 +256,116 @@
       throw new Error("Получен некорректный ответ для календаря.");
     }
 
-    const upcoming = events.filter((item) => {
+    function isUpcoming(item) {
       if (item.published !== true) return false;
       return item.date_precision === "month"
         ? `${item.date_year}-${String(item.date_month).padStart(2, "0")}` >= today.slice(0, 7)
         : (item.end_date || item.start_date) >= today;
-    });
+    }
+    const upcoming = events.filter(isUpcoming);
+    const past = document.getElementById("calendar-past");
+    if (past) {
+      const finished = events.filter(item => item.published && !isUpcoming(item)).reverse();
+      if (finished.length) {
+        renderEvents(past.querySelector(".event-list"), finished);
+        past.hidden = false;
+      }
+    }
     renderEvents(calendar, limit ? upcoming.slice(0, limit) : upcoming, "Ближайших соревнований пока нет.");
+  }
+
+  function detailMessage(message) {
+    const title = document.createElement("h1");
+    title.textContent = "Соревнование";
+    detail.replaceChildren(title, createEmptyState(message));
+  }
+
+  async function loadEventDetail() {
+    const id = new URLSearchParams(location.search).get("id");
+    if (!/^[1-9]\d{0,18}$/.test(id || "")) {
+      detailMessage("Соревнование не найдено.");
+      return;
+    }
+    const endpoint = new URL("/rest/v1/competition_events", config.url);
+    endpoint.search = new URLSearchParams({
+      select: "id,title,start_date,end_date,date_precision,date_month,date_year,location,category_label,description,start_time,meeting_time,time_zone,organizer_contact,regulation_url,document_title,document_url,updated_at,results:competition_results(id,title,news:news(id,title))",
+      id: "eq." + id, published: "eq.true", "results.published": "eq.true",
+      "results.news.published": "eq.true", "results.order": "competition_date.desc,id.desc"
+    });
+    const response = await fetch(endpoint, { headers: { apikey: config.anonKey } });
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    const [item] = await response.json();
+    if (!item) {
+      detailMessage("Соревнование не найдено или снято с публикации.");
+      return;
+    }
+    const content = document.createDocumentFragment();
+    function element(tag, text) {
+      const node = document.createElement(tag);
+      node.textContent = text;
+      return node;
+    }
+    function section(label) {
+      const block = document.createElement("section");
+      block.append(element("h2", label));
+      content.append(block);
+      return block;
+    }
+    function link(parent, text, url) {
+      const a = element("a", text);
+      a.className = "result-action";
+      a.href = url;
+      parent.append(a);
+      return a;
+    }
+    const date = element("p", formatEventDateLabel(item));
+    date.className = "event-category";
+    content.append(date, element("h1", item.title));
+    document.title = item.title + " · Федерация фехтования Томской области";
+    const facts = document.createElement("dl");
+    function fact(label, value) {
+      if (value) facts.append(element("dt", label), element("dd", value));
+    }
+    fact("Где", item.location);
+    fact("Категория соревнования", item.category_label);
+    for (const [label, time] of [["Сбор", item.meeting_time], ["Начало", item.start_time]]) {
+      if (time) fact(label, time.slice(0, 5) + (item.time_zone === "Asia/Tomsk" ? " по Томску" : " по местному времени"));
+    }
+    fact("Связь с организатором", item.organizer_contact);
+    if (facts.childElementCount) content.append(facts);
+    if (item.description) section("О соревновании").append(element("p", item.description));
+
+    const documents = [[item.regulation_url, "Положение о соревновании"], [item.document_url, item.document_title]]
+      .filter(([url, label]) => label && url && /^https:\/\//i.test(url) && resolveUrl(url));
+    if (documents.length) {
+      const block = section("Документы");
+      documents.forEach(([url, label]) => link(block, label, url));
+    }
+    const results = item.results || [];
+    if (results.length) {
+      const block = section("Результаты и новости");
+      const news = new Map();
+      for (const result of results) {
+        link(block, "Результаты · " + result.title, "/results/#result-" + result.id);
+        if (result.news) news.set(result.news.id, result.news.title);
+      }
+      for (const [newsId, title] of news) link(block, "Новость · " + title, "/news/?id=" + newsId);
+    }
+    // A bad time zone in imported data must not hide the rest of the card.
+    let file;
+    try {
+      file = window.EventCalendar.build(item);
+    } catch (error) {
+      console.warn("Не удалось подготовить календарный файл.", error);
+    }
+    if (file) {
+      const url = URL.createObjectURL(new Blob([file], { type: "text/calendar;charset=utf-8" }));
+      const action = link(content, "Добавить в календарь", url);
+      action.className = "button button-red";
+      action.download = "ffto-event-" + item.id + ".ics";
+      if (!item.start_time && !item.meeting_time) content.append(element("small", "На весь день. Время уточняется."));
+    }
+    detail.replaceChildren(content);
   }
 
   function renderEvents(container, items, emptyMessage) {
@@ -266,6 +373,7 @@
   }
 
   function showCalendarError() {
+    if (detail) detailMessage("Карточка временно недоступна.");
     if (calendar) {
       calendar.replaceChildren(createEmptyState("Календарь временно недоступен. Попробуйте обновить страницу позже."));
     }
@@ -324,7 +432,11 @@
     category.className = "event-category";
     category.textContent = item.category_label || "Соревнование";
     const title = document.createElement("h3");
-    title.textContent = item.title || "Без названия";
+    const link = document.createElement("a");
+    link.href = "/calendar/event/?id=" + encodeURIComponent(item.id);
+    link.className = "event-detail-link";
+    link.textContent = item.title || "Без названия";
+    title.append(link);
     const meta = document.createElement("div");
     meta.className = "event-meta";
     if (item.location) {

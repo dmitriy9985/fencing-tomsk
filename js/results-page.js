@@ -30,7 +30,8 @@
 
     const client = window.supabase.createClient(
       window.SUPABASE_CONFIG.url,
-      window.SUPABASE_CONFIG.anonKey
+      window.SUPABASE_CONFIG.anonKey,
+      { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } }
     );
 
     const { data, error } = await client
@@ -61,6 +62,8 @@
         )
       `)
       .eq("published", true)
+      .eq("event.published", true)
+      .eq("news.published", true)
       .order("competition_date", { ascending: false })
       .order("created_at", { ascending: false });
 
@@ -72,6 +75,9 @@
     results = data.map(normalizeResult);
     populateFilters();
     renderResults();
+    if (/^#result-\d+$/.test(location.hash)) {
+      document.getElementById(location.hash.slice(1))?.scrollIntoView();
+    }
   }
 
   function normalizeResult(item) {
@@ -138,6 +144,7 @@
   function createTournament(item, selectedWeapon) {
     const article = document.createElement("article");
     article.className = "result-tournament";
+    article.id = "result-" + item.id;
 
     const dateBlock = document.createElement("div");
     dateBlock.className = "result-tournament-date";
@@ -222,7 +229,7 @@
       metadata.append(createMetaItem("Место", city));
     }
     if (item.event && item.event.title) {
-      metadata.append(createMetaItem("Календарь", item.event.title));
+      metadata.append(createLink("/calendar/event/?id=" + encodeURIComponent(item.event.id), item.event.title, false));
     }
     return metadata;
   }

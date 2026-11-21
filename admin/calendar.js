@@ -30,6 +30,13 @@
     description: document.getElementById("calendar-description"),
     category: document.getElementById("calendar-category"),
     shortLabel: document.getElementById("calendar-short-label"),
+    startTime: document.getElementById("calendar-start-time"),
+    meetingTime: document.getElementById("calendar-meeting-time"),
+    zone: document.getElementById("calendar-zone"),
+    contact: document.getElementById("calendar-contact"),
+    regulation: document.getElementById("calendar-regulation"),
+    documentTitle: document.getElementById("calendar-document-title"),
+    documentUrl: document.getElementById("calendar-document-url"),
     published: document.getElementById("calendar-published"),
     save: document.getElementById("calendar-save-button"),
     cancel: document.getElementById("calendar-cancel-button"),
@@ -90,7 +97,7 @@
     try {
       const { data, error } = await client
         .from("competition_events")
-        .select("id,title,start_date,end_date,date_precision,date_month,date_year,sort_date,location,description,category_label,short_label,published,created_at,updated_at")
+        .select("id,title,start_date,end_date,date_precision,date_month,date_year,sort_date,location,description,category_label,short_label,start_time,meeting_time,time_zone,organizer_contact,regulation_url,document_title,document_url,published,created_at,updated_at")
         .order("sort_date", { ascending: true })
         .order("created_at", { ascending: false });
       if (error) {
@@ -134,6 +141,13 @@
     content.append(date, title, details, status);
 
     const actions = api.createElement("div", { className: "record-actions" });
+    if (item.published) {
+      const link = api.createElement("a", { text: "Карточка", className: "button button-secondary button-small" });
+      link.href = "/calendar/event/?id=" + encodeURIComponent(item.id);
+      link.target = "_blank";
+      link.rel = "noopener";
+      actions.append(link);
+    }
     actions.append(
       createButton(item.published ? "В черновик" : "Опубликовать", "button button-secondary button-small", () => togglePublished(item)),
       createButton("Изменить", "button button-secondary button-small", () => openEditForm(item)),
@@ -176,6 +190,13 @@
     elements.description.value = item.description || "";
     elements.category.value = item.category_label || "";
     elements.shortLabel.value = item.short_label || "";
+    elements.startTime.value = (item.start_time || "").slice(0, 5);
+    elements.meetingTime.value = (item.meeting_time || "").slice(0, 5);
+    elements.zone.value = item.time_zone || "";
+    elements.contact.value = item.organizer_contact || "";
+    elements.regulation.value = item.regulation_url || "";
+    elements.documentTitle.value = item.document_title || "";
+    elements.documentUrl.value = item.document_url || "";
     elements.published.checked = Boolean(item.published);
     elements.editorTitle.textContent = "Изменение события";
     elements.editor.hidden = false;
@@ -242,6 +263,22 @@
       return;
     }
 
+    const hasTime = Boolean(elements.startTime.value || elements.meetingTime.value);
+    const zone = elements.zone.value.trim();
+    if (hasTime) {
+      try {
+        if (!zone) throw new RangeError();
+        new Intl.DateTimeFormat("ru", { timeZone: zone });
+      } catch {
+        return reportInvalid(elements.zone, "Укажите часовой пояс, например Asia/Tomsk.");
+      }
+    }
+    const documentTitle = elements.documentTitle.value.trim();
+    const documentUrl = elements.documentUrl.value.trim();
+    if (Boolean(documentTitle) !== Boolean(documentUrl)) {
+      return reportInvalid(documentTitle ? elements.documentUrl : elements.documentTitle,
+        "Для дополнительного документа нужны и название, и ссылка.");
+    }
     const payload = {
       title: elements.title.value.trim(),
       date_precision: datePrecision,
@@ -253,6 +290,13 @@
       description: elements.description.value.trim(),
       category_label: elements.category.value.trim(),
       short_label: elements.shortLabel.value.trim(),
+      start_time: elements.startTime.value || null,
+      meeting_time: elements.meetingTime.value || null,
+      time_zone: hasTime ? zone : null,
+      organizer_contact: elements.contact.value.trim() || null,
+      regulation_url: elements.regulation.value.trim() || null,
+      document_title: documentTitle || null,
+      document_url: documentUrl || null,
       published: elements.published.checked
     };
 
@@ -275,6 +319,12 @@
     } finally {
       setWorking(false, elements.save, "Сохранить");
     }
+  }
+
+  function reportInvalid(input, message) {
+    input.setCustomValidity(message);
+    input.reportValidity();
+    input.setCustomValidity("");
   }
 
   async function togglePublished(item) {

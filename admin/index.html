@@ -8,14 +8,14 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self'; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; font-src 'self'; base-uri 'self'; form-action 'self'">
   <title>Управление сайтом — Федерация фехтования Томской области</title>
   <link rel="icon" type="image/png" sizes="16x16" href="../images/logo/logoffto-16.png"><link rel="icon" type="image/png" sizes="32x32" href="../images/logo/logoffto.png?v=3.1">
-  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="admin.css?v=3.2">
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
   <script defer src="../js/supabase-config.js"></script>
   <link rel="stylesheet" href="../training/training.css">
   <script defer src="shared.js"></script>
   <script defer src="../js/training-schedule.js"></script>
   <script defer src="training.js"></script>
-  <script defer src="calendar.js"></script>
+  <script defer src="calendar.js?v=3.2"></script>
   <script defer src="results.js"></script>
   <script defer src="gallery.js"></script>
   <script defer src="home.js"></script>
@@ -264,11 +264,34 @@
                     <label>Год<input id="calendar-date-year" type="number" min="2000" max="2100" step="1" inputmode="numeric"></label>
                   </div>
                   <label>Место проведения<input id="calendar-location" type="text" maxlength="200"></label>
-                  <label>Описание<textarea id="calendar-description" maxlength="2000" rows="5"></textarea></label>
+                  <label>Описание и категории участников<textarea id="calendar-description" maxlength="2000" rows="5"></textarea></label>
                   <div class="form-grid two-columns">
-                    <label>Категория<input id="calendar-category" type="text" maxlength="100"></label>
+                    <label>Категория соревнования<input id="calendar-category" type="text" maxlength="100"></label>
                     <label>Короткая метка<input id="calendar-short-label" type="text" maxlength="40"></label>
                   </div>
+                  <fieldset class="calendar-details-fields">
+                    <legend>Время и связь</legend>
+                    <div class="form-grid two-columns">
+                      <label>Сбор в первый день<input id="calendar-meeting-time" type="time"></label>
+                      <label>Начало в первый день<input id="calendar-start-time" type="time"></label>
+                    </div>
+                    <label>Часовой пояс места проведения<input id="calendar-zone" type="text" list="event-zones" maxlength="80" placeholder="Например, Asia/Tomsk"></label>
+                    <datalist id="event-zones">
+                      <option value="Asia/Tomsk">Томск</option><option value="Asia/Novosibirsk">Новосибирск</option>
+                      <option value="Asia/Omsk">Омск</option><option value="Europe/Moscow">Москва</option>
+                      <option value="Asia/Yekaterinburg">Екатеринбург</option>
+                    </datalist>
+                    <label>Публичный контакт организатора<input id="calendar-contact" type="text" maxlength="300" placeholder="Согласованный телефон, почта или другой контакт"></label>
+                  </fieldset>
+                  <fieldset class="calendar-details-fields">
+                    <legend>Официальные документы</legend>
+                    <label>Ссылка на положение<input id="calendar-regulation" type="url" pattern="https://.+" maxlength="2048" placeholder="https://"></label>
+                    <div class="form-grid two-columns">
+                      <label>Название другого документа<input id="calendar-document-title" type="text" maxlength="150"></label>
+                      <label>Ссылка на документ<input id="calendar-document-url" type="url" pattern="https://.+" maxlength="2048" placeholder="https://"></label>
+                    </div>
+                    <p class="field-hint">Укажите публичные HTTPS-ссылки организатора. Проверьте, что документы открываются без входа.</p>
+                  </fieldset>
                   <label class="checkbox-label">
                     <input id="calendar-published" type="checkbox">
                     <span><b>Опубликовано</b><small>Выключите, чтобы сохранить событие как черновик.</small></span>

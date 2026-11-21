@@ -2082,7 +2082,7 @@ body.news-detail-mode .news-page-section {
 
 .calendar-section.page-section .event-date {
   align-self: stretch;
-  min-height: 158px;
+  min-height: 126px;
   padding: 18px 12px;
   border-radius: 12px;
 }
@@ -2101,7 +2101,7 @@ body.news-detail-mode .news-page-section {
 
 .calendar-section.page-section .event-main {
   min-width: 0;
-  padding-block: 20px;
+  padding-block: 14px;
 }
 
 .calendar-section.page-section .event-main h3 {
@@ -2120,7 +2120,7 @@ body.news-detail-mode .news-page-section {
 
 .calendar-section.page-section .event-meta {
   display: grid;
-  margin-top: 18px;
+  margin-top: 10px;
   gap: 10px;
 }
 
@@ -2134,18 +2134,6 @@ body.news-detail-mode .news-page-section {
   font-weight: 800;
   letter-spacing: .04em;
   text-transform: uppercase;
-}
-
-.calendar-section.page-section .event-description {
-  max-width: 780px;
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1.6;
-  white-space: pre-line;
-}
-
-.calendar-section.page-section .event-description::before {
-  display: none;
 }
 
 .calendar-section.page-section .event-code {
@@ -2773,8 +2761,8 @@ body.news-detail-mode .news-page-section {
 
   .calendar-section.page-section .event-date {
     grid-row: auto;
-    min-height: 100px;
-    padding: 15px 12px;
+    min-height: 64px;
+    padding: 8px 12px;
     border-radius: 10px;
   }
 
@@ -2801,7 +2789,7 @@ body.news-detail-mode .news-page-section {
   }
 
   .calendar-section.page-section .event-main {
-    padding: 22px 10px 14px;
+    padding: 14px 10px 10px;
   }
 
   .calendar-section.page-section .event-main h3 {
@@ -2809,7 +2797,7 @@ body.news-detail-mode .news-page-section {
   }
 
   .calendar-section.page-section .event-meta {
-    margin-top: 16px;
+    margin-top: 8px;
     gap: 8px;
   }
 

@@ -8,7 +8,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self'; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; font-src 'self'; base-uri 'self'; form-action 'self'">
   <title>Управление сайтом — Федерация фехтования Томской области</title>
   <link rel="icon" type="image/png" sizes="16x16" href="../images/logo/logoffto-16.png"><link rel="icon" type="image/png" sizes="32x32" href="../images/logo/logoffto.png?v=3.1">
-  <link rel="stylesheet" href="admin.css?v=3.3">
+  <link rel="stylesheet" href="admin.css?v=calendar-participants">
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
   <script defer src="../js/supabase-config.js"></script>
   <link rel="stylesheet" href="../training/training.css">
@@ -16,7 +16,7 @@
   <script defer src="../js/training-schedule.js"></script>
   <script defer src="training.js"></script>
   <script defer src="calendar-filter.js?v=3.3"></script>
-  <script defer src="calendar.js?v=3.3"></script>
+  <script defer src="calendar.js?v=calendar-participants"></script>
   <script defer src="results.js?v=atomic-1"></script>
   <script defer src="gallery.js"></script>
   <script defer src="home.js"></script>
@@ -265,11 +265,18 @@
                     <label>Год<input id="calendar-date-year" type="number" min="2000" max="2100" step="1" inputmode="numeric"></label>
                   </div>
                   <label>Место проведения<input id="calendar-location" type="text" maxlength="200"></label>
-                  <label>Описание и категории участников<textarea id="calendar-description" maxlength="2000" rows="5"></textarea></label>
+                  <label>Подробности соревнования<textarea id="calendar-description" maxlength="2000" rows="5"></textarea></label>
                   <div class="form-grid two-columns">
                     <label>Категория соревнования<input id="calendar-category" type="text" maxlength="100"></label>
                     <label>Короткая метка<input id="calendar-short-label" type="text" maxlength="40"></label>
                   </div>
+                  <fieldset class="calendar-details-fields">
+                    <legend>Участники в анонсе</legend>
+                    <div id="calendar-participant-groups" class="calendar-participant-groups"></div>
+                    <button id="calendar-add-participant-group" class="button button-secondary button-small" type="button">Добавить возрастную группу</button>
+                    <label>Оружие<input id="calendar-weapon" type="text" maxlength="40" placeholder="Например, Шпага"></label>
+                    <p class="field-hint">Заполняйте только подтверждённые сведения. Для разных возрастов добавьте отдельные группы.</p>
+                  </fieldset>
                   <fieldset class="calendar-details-fields">
                     <legend>Время и связь</legend>
                     <div class="form-grid two-columns">

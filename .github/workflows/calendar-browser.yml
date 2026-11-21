@@ -1,0 +1,78 @@
+name: Calendar browser checks
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'calendar/**'
+      - 'admin/**'
+      - 'styles.css'
+      - 'js/site-content.js'
+      - 'supabase/calendar-*.sql'
+      - 'tests/browser/**'
+      - '.github/workflows/calendar-browser.yml'
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Calendar to check
+        type: choice
+        options:
+          - fixture
+          - production
+        default: fixture
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+
+jobs:
+  chromium:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: calendar-fixture
+        ports:
+          - 54852:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PG_TEST_URL: postgres://postgres:calendar-fixture@127.0.0.1:54852/postgres
+      PGRST_JWT_SECRET: local-disposable-test-key-only-for-ffto35-qa
+      QA_TARGET: ${{ inputs.target || 'fixture' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser and test client
+        run: |
+          npm install --no-save --no-package-lock playwright@1.57.0 @supabase/supabase-js@2.57.4
+          npx playwright install --with-deps chromium --only-shell
+      - name: Start isolated database, API and static site
+        if: env.QA_TARGET == 'fixture'
+        run: |
+          psql "$PG_TEST_URL" -v ON_ERROR_STOP=1 -f tests/browser/calendar-fixture.sql
+          curl --fail --silent --show-error --location \
+            https://github.com/PostgREST/postgrest/releases/download/v16.6/postgrest-v16.6-linux-static-x86-64.tar.xz \
+            | tar -xJ -C "$RUNNER_TEMP" postgrest
+          export PGRST_DB_URI="$PG_TEST_URL" PGRST_DB_ANON_ROLE=anon PGRST_SERVER_PORT=54853 PGRST_SERVER_HOST=127.0.0.1
+          "$RUNNER_TEMP/postgrest" > "$RUNNER_TEMP/postgrest.log" 2>&1 &
+          python3 -m http.server 8735 --bind 127.0.0.1 > "$RUNNER_TEMP/calendar-http.log" 2>&1 &
+          curl --retry 10 --retry-delay 1 --retry-connrefused --fail --silent \
+            'http://127.0.0.1:54853/competition_events?select=id' > /dev/null
+      - name: Check calendar at 1440, 390 and 320 px
+        run: node tests/browser/calendar.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: calendar-browser
+          path: calendar-browser-artifacts/

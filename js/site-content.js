@@ -248,7 +248,7 @@
     const today = new Intl.DateTimeFormat("sv-SE", {
       timeZone: "Asia/Tomsk", year: "numeric", month: "2-digit", day: "2-digit"
     }).format(new Date());
-    const columns = "id,title,start_date,end_date,date_precision,date_month,date_year,sort_date,location,category_label,published,created_at";
+    const columns = "id,title,start_date,end_date,date_precision,date_month,date_year,sort_date,location,category_label,participant_groups,weapon_label,published,created_at";
     const endpoint = new URL("/rest/v1/competition_events", config.url);
     endpoint.search = new URLSearchParams({
       select: columns,
@@ -531,6 +531,31 @@
       meta.append(location);
       main.append(meta);
     }
+
+    const participants = document.createElement("ul");
+    participants.className = "event-participants";
+    participants.setAttribute("role", "list");
+    participants.setAttribute("aria-label", "Участники и оружие");
+    const groups = Array.isArray(item.participant_groups) ? item.participant_groups : [];
+    function addBadge(parts) {
+      if (!parts.length) return;
+      const badge = document.createElement("li");
+      for (const [index, text] of parts.entries()) {
+        if (index) badge.append(" · ");
+        const part = document.createElement("span");
+        part.textContent = text;
+        badge.append(part);
+      }
+      participants.append(badge);
+    }
+    for (const group of groups) {
+      const label = typeof group?.label === "string" ? group.label.trim() : "";
+      const years = typeof group?.birth_years === "string" ? group.birth_years.trim() : "";
+      const birthLabel = years && years.replace(/(?= и (?:младше|старше)$)|$/, " г.р.");
+      addBadge([label, birthLabel].filter(Boolean));
+    }
+    if (item.weapon_label?.trim()) addBadge([item.weapon_label.trim()]);
+    if (participants.childElementCount) main.append(participants);
 
     const code = document.createElement("span");
     code.className = "event-code event-code-wide";

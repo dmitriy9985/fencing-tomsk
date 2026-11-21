@@ -30,6 +30,9 @@
     description: document.getElementById("calendar-description"),
     category: document.getElementById("calendar-category"),
     shortLabel: document.getElementById("calendar-short-label"),
+    participantGroups: document.getElementById("calendar-participant-groups"),
+    addGroup: document.getElementById("calendar-add-participant-group"),
+    weapon: document.getElementById("calendar-weapon"),
     startTime: document.getElementById("calendar-start-time"),
     meetingTime: document.getElementById("calendar-meeting-time"),
     zone: document.getElementById("calendar-zone"),
@@ -64,6 +67,10 @@
     elements.add.addEventListener("click", openCreateForm);
     elements.close.addEventListener("click", () => closeEditor(true));
     elements.cancel.addEventListener("click", () => closeEditor(true));
+    elements.addGroup.addEventListener("click", () => {
+      appendParticipantGroup().focus();
+      api.setDirty(sectionName, true);
+    });
     elements.form.addEventListener("submit", saveItem);
     elements.refresh.addEventListener("click", loadItems);
     elements.period.addEventListener("change", renderList);
@@ -101,7 +108,7 @@
     try {
       const { data, error } = await client
         .from("competition_events")
-        .select("id,title,start_date,end_date,date_precision,date_month,date_year,sort_date,location,description,category_label,short_label,start_time,meeting_time,time_zone,organizer_contact,regulation_url,document_title,document_url,published,created_at,updated_at")
+        .select("id,title,start_date,end_date,date_precision,date_month,date_year,sort_date,location,description,category_label,short_label,participant_groups,weapon_label,start_time,meeting_time,time_zone,organizer_contact,regulation_url,document_title,document_url,published,created_at,updated_at")
         .order("sort_date", { ascending: true })
         .order("created_at", { ascending: false });
       if (error) {
@@ -169,6 +176,7 @@
     editingItem = null;
     elements.form.reset();
     elements.datePrecision.value = "exact";
+    showParticipantGroups([]);
     const today = window.CalendarFilter.today();
     elements.startDate.value = today;
     elements.dateYear.value = today.slice(0, 4);
@@ -196,6 +204,8 @@
     elements.description.value = item.description || "";
     elements.category.value = item.category_label || "";
     elements.shortLabel.value = item.short_label || "";
+    elements.weapon.value = item.weapon_label || "";
+    showParticipantGroups(item.participant_groups);
     elements.startTime.value = (item.start_time || "").slice(0, 5);
     elements.meetingTime.value = (item.meeting_time || "").slice(0, 5);
     elements.zone.value = item.time_zone || "";
@@ -210,6 +220,36 @@
     syncDateFields();
     updatePreview();
     focusEditor();
+  }
+
+  function showParticipantGroups(groups) {
+    elements.participantGroups.replaceChildren();
+    if (groups?.length) groups.forEach(appendParticipantGroup);
+    else appendParticipantGroup();
+  }
+
+  function appendParticipantGroup(group = {}) {
+    const row = api.createElement("div", { className: "calendar-participant-group" });
+    function field(label, value, maxLength, placeholder) {
+      const wrapper = api.createElement("label", { text: label });
+      const input = document.createElement("input");
+      input.type = "text";
+      input.value = value || "";
+      input.maxLength = maxLength;
+      input.placeholder = placeholder;
+      wrapper.append(input);
+      row.append(wrapper);
+      return input;
+    }
+    const category = field("Возрастная категория", group.label, 64, "Юниоры и юниорки");
+    field("Годы рождения", group.birth_years, 48, "2007–2013");
+    row.append(createButton("Убрать группу", "button button-secondary button-small", () => {
+      row.remove();
+      elements.addGroup.focus();
+      api.setDirty(sectionName, true);
+    }));
+    elements.participantGroups.append(row);
+    return category;
   }
 
   function prepareForAnotherForm() {
@@ -235,6 +275,7 @@
     editingItem = null;
     elements.editor.hidden = true;
     elements.form.reset();
+    elements.participantGroups.replaceChildren();
     api.setDirty(sectionName, false);
   }
 
@@ -285,6 +326,24 @@
       return reportInvalid(documentTitle ? elements.documentUrl : elements.documentTitle,
         "Для дополнительного документа нужны и название, и ссылка.");
     }
+    const participantGroups = [];
+    for (const group of elements.participantGroups.children) {
+      const [category, years] = group.querySelectorAll("input");
+      const label = category.value.trim();
+      const birthYears = years.value.trim().replace(/\s*[-–—]\s*/g, "–").replace(/\s*,\s*/g, ", ");
+      if (birthYears && !/^(?:\d{4} и (?:младше|старше)|\d{4}(?:–\d{4})?(?:, \d{4}(?:–\d{4})?)*)$/.test(birthYears)) {
+        return reportInvalid(years, "Укажите год, диапазон 2007–2013, список через запятую или, например, «2012 и младше».");
+      }
+      if (birthYears.split(", ").some(range => {
+        const [from, to] = range.split("–");
+        return to && from > to;
+      })) {
+        return reportInvalid(years, "Укажите годы в диапазоне от меньшего к большему.");
+      }
+      if (label || birthYears) {
+        participantGroups.push({ ...(label && { label }), ...(birthYears && { birth_years: birthYears }) });
+      }
+    }
     const payload = {
       title: elements.title.value.trim(),
       date_precision: datePrecision,
@@ -296,6 +355,8 @@
       description: elements.description.value.trim(),
       category_label: elements.category.value.trim(),
       short_label: elements.shortLabel.value.trim(),
+      participant_groups: participantGroups,
+      weapon_label: elements.weapon.value.trim() || null,
       start_time: elements.startTime.value || null,
       meeting_time: elements.meetingTime.value || null,
       time_zone: hasTime ? zone : null,

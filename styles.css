@@ -286,6 +286,13 @@ a {
   margin-top: 34px;
 }
 
+.hero-schedule small {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  font-weight: 400;
+}
+
 .button {
   display: inline-flex;
   align-items: center;
@@ -1670,6 +1677,10 @@ body.news-detail-mode .news-page-section {
   line-height: 1.6;
 }
 
+.coach-meta p + p {
+  margin-top: 8px;
+}
+
 .organizations-section {
   color: var(--white);
   background: linear-gradient(118deg, var(--blue), var(--navy-2));
@@ -2586,6 +2597,20 @@ body.news-detail-mode .news-page-section {
   .hero-actions {
     display: grid;
     width: 100%;
+  }
+
+  .home-hero .hero-text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .home-hero .hero-actions {
+    margin-top: 24px;
+  }
+
+  .home-hero .hero-lead {
+    order: 1;
+    margin-top: 34px;
   }
 
   .button {
@@ -3702,6 +3727,24 @@ body.news-detail-mode .news-page-section {
   border-radius: 6px;
   font: inherit;
   resize: vertical;
+}
+
+.equipment-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 18px;
+  margin-bottom: 12px;
+}
+
+.equipment-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 14px;
+}
+
+.equipment-content h2[id] {
+  scroll-margin-top: 12px;
 }
 
 .equipment-steps {

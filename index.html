@@ -9,7 +9,7 @@
   <title>Федерация фехтования Томской области</title>
   <link rel="icon" type="image/png" sizes="16x16" href="/images/logo/logoffto-16.png"><link rel="icon" type="image/png" sizes="32x32" href="/images/logo/logoffto.png?v=3.1">
   <link rel="apple-touch-icon" href="/images/logo/ffto-apple-touch-icon.png?v=3cd7a2013566">
-  <link rel="stylesheet" href="/styles.css?v=3.1">
+  <link rel="stylesheet" href="/styles.css?v=3.1.1">
   <script defer src="/js/site.js"></script><script defer src="/js/analytics.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
   <script defer src="/js/supabase-config.js"></script>
@@ -36,7 +36,13 @@
           <p class="kicker kicker-light" id="hero-kicker">Томская область • официальный сайт</p>
           <h1><span id="hero-title-primary">Фехтование</span><span id="hero-title-secondary">в Томске</span></h1>
           <p class="hero-lead" id="hero-subtitle">Новости, календарь соревнований, результаты, тренеры и развитие фехтования в Томской области.</p>
-          <div class="hero-actions"><a class="button button-red" href="/calendar/">Календарь соревнований <img src="/images/icons/arrow-right.svg" alt=""></a><a class="button button-ghost" href="/start/">Начать заниматься</a></div>
+          <div class="hero-actions">
+            <a class="button button-red hero-schedule" href="/training/">
+              <span>Расписание тренировок<small>«Акватика», Ленина, 207</small></span>
+              <img src="/images/icons/arrow-right.svg" alt="">
+            </a>
+            <a class="button button-ghost" href="/start/">Начать заниматься</a>
+          </div>
         </div>
         <figure class="hero-photo"><img id="hero-image" src="/images/awards/shutova2026/shutova2026.jpeg" alt="Томские фехтовальщики на турнире"><figcaption class="photo-caption"><span>Томская область</span><strong>Фехтование в Томской области</strong></figcaption></figure>
       </div>
@@ -45,7 +51,7 @@
 
     <nav class="quick-nav wrap" aria-label="Основные разделы">
       <a href="/news/"><img class="quick-icon" src="/images/icons/news.svg" alt=""><span><b>Новости</b><small>События федерации</small></span><img class="quick-arrow" src="/images/icons/arrow-right.svg" alt=""></a>
-      <a href="/calendar/"><img class="quick-icon" src="/images/icons/calendar.svg" alt=""><span><b>Календарь</b><small>Турниры и положения</small></span><img class="quick-arrow" src="/images/icons/arrow-right.svg" alt=""></a>
+      <a href="/calendar/"><img class="quick-icon" src="/images/icons/calendar.svg" alt=""><span><b>Календарь</b><small>Ближайшие соревнования</small></span><img class="quick-arrow" src="/images/icons/arrow-right.svg" alt=""></a>
       <a href="/results/"><img class="quick-icon" src="/images/icons/medal.svg" alt=""><span><b>Результаты</b><small>Выступления спортсменов</small></span><img class="quick-arrow" src="/images/icons/arrow-right.svg" alt=""></a>
     </nav>
 

@@ -215,6 +215,32 @@
     }
 
     renderNewsDetail(newsResult.data, photos);
+    loadRelatedResults(rawId).catch(error => console.warn("Не удалось загрузить связанные результаты.", error));
+  }
+
+  async function loadRelatedResults(rawId) {
+    const related = await client.from("competition_results")
+      .select("id,title,event:competition_events(id,title)")
+      .eq("published", true).eq("event.published", true).eq("news_id", rawId)
+      .order("competition_date", { ascending: false });
+    if (related.error || !related.data?.length) return;
+    const links = document.createElement("div");
+    links.className = "result-actions";
+    const seen = new Set();
+    function addLink(path, label) {
+      if (seen.has(path)) return;
+      seen.add(path);
+      const link = document.createElement("a");
+      link.className = "result-action";
+      link.href = path;
+      link.textContent = label;
+      links.append(link);
+    }
+    for (const result of related.data) {
+      if (result.event) addLink("/calendar/event/?id=" + result.event.id, "Соревнование · " + result.event.title);
+      addLink("/results/#result-" + result.id, "Результаты · " + result.title);
+    }
+    detailContainer.querySelector("article").append(links);
   }
 
   function createFeaturedNews(item) {

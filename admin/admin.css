@@ -1284,3 +1284,14 @@ input[type="file"] {
     flex: 1;
   }
 }
+
+.calendar-details-fields {
+  display: grid;
+  min-width: 0;
+  gap: 16px;
+  padding: 16px;
+  margin: 0;
+  border: 1px solid var(--border);
+}
+.calendar-details-fields legend { font-weight: 700; }
+.calendar-details-fields input { min-width: 0; width: 100%; }

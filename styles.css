@@ -3867,6 +3867,30 @@ body.news-detail-mode .news-page-section {
   margin: 2px 0 0;
 }
 
+.equipment-chest-protection {
+  margin-top: clamp(24px, 4vw, 36px);
+}
+
+.equipment-chest-protection h3 {
+  margin: 0 0 10px;
+  color: var(--navy);
+  font-size: clamp(19px, 2.3vw, 24px);
+}
+
+.equipment-chest-card {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 2vw, 18px);
+  padding: clamp(12px, 2vw, 18px);
+}
+
+.equipment-chest-card img {
+  flex: none;
+  width: clamp(64px, 10vw, 104px);
+  height: auto;
+  border-radius: 8px;
+}
+
 .equipment-credits {
   margin-top: 16px;
   color: #475569;

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
-import { mkdir } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 import { chromium } from "playwright";
 import { createCalendarHandler } from "../../supabase/functions/calendar-event-ics/handler.mjs";
 
@@ -48,6 +48,7 @@ async function run() {
         acceptDownloads: true,
       });
       if (!live) {
+        await ctx.route("https://calendar.google.com/calendar/render?**", r => r.fulfill({ status: 204 }));
         const appleHandler = createCalendarHandler({ supabaseUrl: endpoint, anonKey: "fixture",
           fetchEvent: (url) => fetch(endpoint + url.pathname.slice(8) + url.search) });
         await ctx.route("**/js/supabase-config.js*", (r) =>
@@ -166,10 +167,22 @@ async function run() {
         const appleUrl = await apple.getAttribute("href");
         assert.ok(appleUrl.endsWith("/calendar-event-ics/" + id + ".ics"));
         assert.equal(await apple.getAttribute("download"), null);
-        const google = new URL(await card.getByRole("link", { name: "Google Календарь" }).getAttribute("href"));
+        const googleLink = card.getByRole("link", { name: "Google Календарь" });
+        const google = new URL(await googleLink.getAttribute("href"));
         assert.equal(google.host, "calendar.google.com");
         assert.equal(google.searchParams.get("action"), "TEMPLATE");
         assert.match(google.searchParams.get("details"), new RegExp("id=" + id + "$"));
+        assert.equal(google.searchParams.get("text"), await card.getByRole("heading").first().textContent());
+        const location = await card.locator("dt").filter({ hasText: /^Где$/ })
+          .evaluate(label => label.nextElementSibling.textContent);
+        assert.equal(google.searchParams.get("location"), location);
+        if (!live) {
+          const [request] = await Promise.all([
+            p.waitForRequest(request => request.url() === google.href),
+            activate(googleLink),
+          ]);
+          assert.ok(request.isNavigationRequest());
+        }
         if (id === 11) {
           const [start, end] = google.searchParams.get("dates").split("/");
           const parse = date => Date.parse(date.slice(0,4) + "-" + date.slice(4,6) + "-" + date.slice(6) + "T00:00:00Z");
@@ -180,6 +193,13 @@ async function run() {
           activate(card.getByRole("link", { name: "Скачать .ics" })),
         ]);
         assert.equal(download.suggestedFilename(), "ffto-event-" + id + ".ics");
+        const ics = await readFile(await download.path(), "utf8");
+        assert.ok(ics.replace(/\r\n /g, "").includes("URL:https://fencing-tomsk.ru/calendar/event/?id=" + id));
+        if (id === 11) {
+          const [start, end] = google.searchParams.get("dates").split("/");
+          assert.ok(ics.includes("DTSTART;VALUE=DATE:" + start + "\r\n"));
+          assert.ok(ics.includes("DTEND;VALUE=DATE:" + end + "\r\n"));
+        }
         await assertWidth();
         const options = card.locator(".event-calendar-options");
         assert.ok(await options.evaluate(panel => panel.scrollWidth <= panel.clientWidth));
@@ -187,11 +207,14 @@ async function run() {
         if (!live) {
           // Validate the actual target navigation and its HTTP response without
           // inferring a native iOS import from Chromium's download behavior.
-          const [navigation] = await Promise.all([
-            p.waitForRequest(request => request.url() === appleUrl),
+          const [response] = await Promise.all([
+            p.waitForResponse(response => response.url() === appleUrl),
             activate(apple),
           ]);
-          assert.ok(navigation.isNavigationRequest());
+          assert.ok(response.request().isNavigationRequest());
+          assert.equal(response.status(), 200);
+          assert.match(response.headers()["content-type"], /^text\/calendar/);
+          assert.match(response.headers()["content-disposition"], /^inline/);
         }
       };
       await checkExport(dialog, 8);

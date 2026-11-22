@@ -66,11 +66,16 @@ test("HTTP-адрес Apple отдаёт .ics inline и запрашивает �
       assert.equal(url.searchParams.get("published"), "eq.true");
       assert.equal(options.headers.apikey, "test-anon-key");
       assert.equal(options.headers.Authorization, undefined);
-      return Response.json(url.searchParams.get("id") === "eq.17" ? [base] : []);
+      const id = Number(url.searchParams.get("id").slice(3));
+      if (id === 19) return Response.json([{ ...base, published: true }]);
+      if (id === 21) return Response.json([{ ...base, id, published: true, date_precision: "month" }]);
+      if (id === 22) return new Response(null, { status: 503 });
+      return Response.json(id === 20 ? [] : [{ ...base, id, published: id === 17 }]);
     },
   });
   const request = (name, method = "GET") => new Request(
-    "https://example.supabase.co/functions/v1/calendar-event-ics/" + name, { method }
+    "https://example.supabase.co/functions/v1/calendar-event-ics/" + name,
+    { method, headers: { Authorization: "Bearer caller-token" } },
   );
   const result = await handler(request("17.ics"));
   assert.equal(result.status, 200);
@@ -84,7 +89,14 @@ test("HTTP-адрес Apple отдаёт .ics inline и запрашивает �
   assert.equal(head.headers.get("content-disposition"), result.headers.get("content-disposition"));
   assert.equal(head.headers.get("content-length"), result.headers.get("content-length"));
   assert.equal(await head.text(), "");
-  assert.equal((await handler(request("18.ics"))).status, 404);
+  for (const id of [18, 19, 20, 21]) {
+    for (const method of ["GET", "HEAD"]) {
+      const unavailable = await handler(request(id + ".ics", method));
+      assert.equal(unavailable.status, 404);
+      assert.equal(await unavailable.text(), "");
+    }
+  }
+  assert.equal((await handler(request("22.ics"))).status, 502);
   assert.equal((await handler(request("17.ics", "POST"))).status, 405);
   assert.equal((await handler(request("invalid.ics"))).status, 404);
 });

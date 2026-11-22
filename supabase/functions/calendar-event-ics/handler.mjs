@@ -1,6 +1,6 @@
 import { build } from "../../../js/event-calendar.mjs";
 
-const columns = "id,title,start_date,end_date,date_precision,start_time,meeting_time,time_zone,location,updated_at";
+const columns = "id,title,start_date,end_date,date_precision,start_time,meeting_time,time_zone,location,updated_at,published";
 
 export function createCalendarHandler({ supabaseUrl, anonKey, fetchEvent = fetch }) {
   return async function calendarEvent(request) {
@@ -20,7 +20,7 @@ export function createCalendarHandler({ supabaseUrl, anonKey, fetchEvent = fetch
       if (!response.ok) return new Response(null, { status: 502 });
 
       const [event] = await response.json();
-      const file = event ? build(event) : null;
+      const file = event?.published === true && String(event.id) === id ? build(event) : null;
       if (!file) return new Response(null, { status: 404 });
       return new Response(request.method === "HEAD" ? null : file, {
         headers: {

@@ -20,6 +20,30 @@ test("Сбор без времени начала и местное время �
   assert.equal(build({ start_date: "2027-10-31", start_time: "02:30", time_zone: "Europe/Berlin" }), null);
 });
 
+test("Новосибирский турнир сохраняет исходный часовой пояс и программу по дням", () => {
+  const event = {
+    ...base, id: 8, start_date: "2026-11-28", end_date: "2026-11-29", start_time: "10:00",
+    time_zone: "Asia/Novosibirsk", description: "28 ноября — личные.\n29 ноября — командные.",
+  };
+  const raw = buildIcs(event).replace(/\r\n /g, "");
+  assert.match(raw, /TZID:Asia\/Novosibirsk\r\nBEGIN:STANDARD\r\nDTSTART:20170101T000000\r\nTZOFFSETFROM:\+0700\r\nTZOFFSETTO:\+0700/);
+  const start = raw.match(/^DTSTART;TZID=Asia\/Novosibirsk:(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})\r$/m);
+  const [, year, month, day, hour, minute, second] = start;
+  const instant = new Date(year + "-" + month + "-" + day + "T" + hour + ":" + minute + ":" + second + "+07:00");
+  assert.equal(instant.toISOString(), "2026-11-28T03:00:00.000Z");
+  const timeIn = timeZone => new Intl.DateTimeFormat("en-GB", {
+    timeZone, hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  }).format(instant);
+  assert.equal(timeIn("Asia/Novosibirsk"), "10:00");
+  assert.equal(timeIn("Europe/Moscow"), "06:00");
+  assert.match(raw, /DTEND;TZID=Asia\/Novosibirsk:20261130T000000/);
+  assert.equal(raw.split("BEGIN:VEVENT").length, 2);
+  assert.doesNotMatch(raw, /^(?:RRULE|RDATE):/m);
+  assert.match(raw, /DESCRIPTION:28 ноября — личные\.\\n29 ноября — командные\./);
+  assert.match(raw, /Первый старт 28\.11\.2026: 10:00/);
+  assert.match(raw, /Время окончания уточняется/);
+});
+
 test("Кириллица, переносы, экранирование и постоянный идентификатор", () => {
   const title = "Шпага, юниоры; " + "Турнир ".repeat(20) + "\nФинал";
   const raw = build({ title });
@@ -64,13 +88,14 @@ test("HTTP-адрес Apple отдаёт .ics inline и запрашивает �
     fetchEvent: (url, options) => {
       assert.equal(url.pathname, "/rest/v1/competition_events");
       assert.equal(url.searchParams.get("published"), "eq.true");
+      assert.ok(url.searchParams.get("select").split(",").includes("description"));
       assert.equal(options.headers.apikey, "test-anon-key");
       assert.equal(options.headers.Authorization, undefined);
       const id = Number(url.searchParams.get("id").slice(3));
       if (id === 19) return Response.json([{ ...base, published: true }]);
       if (id === 21) return Response.json([{ ...base, id, published: true, date_precision: "month" }]);
       if (id === 22) return new Response(null, { status: 503 });
-      return Response.json(id === 20 ? [] : [{ ...base, id, published: id === 17 }]);
+      return Response.json(id === 20 ? [] : [{ ...base, id, published: id === 17, description: "Программа турнира." }]);
     },
   });
   const request = (name, method = "GET") => new Request(
@@ -83,7 +108,7 @@ test("HTTP-адрес Apple отдаёт .ics inline и запрашивает �
   assert.equal(result.headers.get("content-disposition"), 'inline; filename="ffto-event-17.ics"');
   assert.equal(result.headers.get("cache-control"), "no-store");
   const file = await result.text();
-  assert.equal(file, buildIcs(base));
+  assert.equal(file, buildIcs({ ...base, description: "Программа турнира." }));
   assert.equal(Number(result.headers.get("content-length")), Buffer.byteLength(file));
   const head = await handler(request("17.ics", "HEAD"));
   assert.equal(head.headers.get("content-disposition"), result.headers.get("content-disposition"));

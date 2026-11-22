@@ -64,9 +64,10 @@ function eventSchedule(event) {
   const finish = end > start ? instant(until, "00:00", zone) : null;
   if (!begin || (end > start && !finish)) return null;
 
-  if (event.meeting_time) notes.push("Сбор: " + event.meeting_time.slice(0, 5) + " (" + zone + ").");
-  if (event.start_time) notes.push("Начало: " + event.start_time.slice(0, 5) + " (" + zone + ").");
-  if (finish) notes.push("В календаре включён весь последний день. Время окончания уточняется.");
+  const firstDate = finish ? " " + start.split("-").reverse().join(".") : "";
+  if (event.meeting_time) notes.push("Сбор" + firstDate + ": " + event.meeting_time.slice(0, 5) + " (" + zone + ").");
+  if (event.start_time) notes.push("Первый старт" + firstDate + ": " + event.start_time.slice(0, 5) + " (" + zone + ").");
+  if (finish) notes.push("Запись охватывает весь последний день турнира. Время окончания уточняется.");
   return { start, until, time, zone, begin, finish, notes };
 }
 
@@ -84,15 +85,15 @@ export function build(event) {
   const zones = [];
   if (!begin) {
     dates.push("DTSTART;VALUE=DATE:" + calendarDate(start), "DTEND;VALUE=DATE:" + calendarDate(until));
-  // Tomsk has used UTC+07 throughout this interval.
-  } else if (zone === "Asia/Tomsk" && start >= "2017-01-01" &&
+  // These two named zones have used UTC+07 throughout this modern interval.
+  } else if ((zone === "Asia/Tomsk" || zone === "Asia/Novosibirsk") && start >= "2017-01-01" &&
       begin.getTime() === Date.parse(start + "T" + time.slice(0, 5) + ":00+07:00") &&
       (!finish || finish.getTime() === Date.parse(until + "T00:00:00+07:00"))) {
-    zones.push("BEGIN:VTIMEZONE", "TZID:Asia/Tomsk", "BEGIN:STANDARD",
+    zones.push("BEGIN:VTIMEZONE", "TZID:" + zone, "BEGIN:STANDARD",
       "DTSTART:20170101T000000", "TZOFFSETFROM:+0700", "TZOFFSETTO:+0700",
       "END:STANDARD", "END:VTIMEZONE");
-    dates.push("DTSTART;TZID=Asia/Tomsk:" + calendarDate(start) + "T" + time.slice(0, 5).replace(":", "") + "00");
-    if (finish) dates.push("DTEND;TZID=Asia/Tomsk:" + calendarDate(until) + "T000000");
+    dates.push("DTSTART;TZID=" + zone + ":" + calendarDate(start) + "T" + time.slice(0, 5).replace(":", "") + "00");
+    if (finish) dates.push("DTEND;TZID=" + zone + ":" + calendarDate(until) + "T000000");
   } else {
     dates.push("DTSTART:" + stamp(begin));
     if (finish) dates.push("DTEND:" + stamp(finish));
@@ -104,7 +105,8 @@ export function build(event) {
     "DTSTAMP:" + stamp(new Date(event.updated_at || Date.now())), ...dates,
     "SUMMARY:" + escapeText(event.title), "URL:" + url];
   if (event.location) lines.push("LOCATION:" + escapeText(event.location));
-  lines.push("DESCRIPTION:" + escapeText([...notes, url].join("\n")), "END:VEVENT", "END:VCALENDAR");
+  const details = [event.description?.trim(), ...notes, url].filter(Boolean);
+  lines.push("DESCRIPTION:" + escapeText(details.join("\n")), "END:VEVENT", "END:VCALENDAR");
   return lines.map(fold).join("\r\n") + "\r\n";
 }
 

@@ -195,6 +195,16 @@ async function run() {
         assert.equal(download.suggestedFilename(), "ffto-event-" + id + ".ics");
         const ics = await readFile(await download.path(), "utf8");
         assert.ok(ics.replace(/\r\n /g, "").includes("URL:https://fencing-tomsk.ru/calendar/event/?id=" + id));
+        if (!live && id === 8) {
+          const [start, end] = google.searchParams.get("dates").split("/");
+          assert.equal(google.searchParams.get("ctz"), "Asia/Novosibirsk");
+          assert.match(start, /^\d{8}T030000Z$/);
+          assert.match(end, /^\d{8}T170000Z$/);
+          assert.match(ics, /TZID:Asia\/Novosibirsk\r\nBEGIN:STANDARD/);
+          assert.ok(ics.includes("DTSTART;TZID=Asia/Novosibirsk:" + start.slice(0, 8) + "T100000\r\n"));
+          assert.match(ics, /DTEND;TZID=Asia\/Novosibirsk:\d{8}T000000/);
+          assert.match(ics.replace(/\r\n /g, ""), /DESCRIPTION:Подробное положение\\nПервый старт /);
+        }
         if (id === 11) {
           const [start, end] = google.searchParams.get("dates").split("/");
           assert.ok(ics.includes("DTSTART;VALUE=DATE:" + start + "\r\n"));

@@ -1,6 +1,6 @@
 import { build } from "../../../js/event-calendar.mjs";
 
-const columns = "id,title,start_date,end_date,date_precision,start_time,meeting_time,time_zone,location,updated_at,published";
+const columns = "id,title,start_date,end_date,date_precision,start_time,meeting_time,time_zone,location,description,updated_at,published";
 
 export function createCalendarHandler({ supabaseUrl, anonKey, fetchEvent = fetch }) {
   return async function calendarEvent(request) {

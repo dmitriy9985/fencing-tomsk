@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
-import { mkdir } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 import { chromium } from "playwright";
+import { createCalendarHandler } from "../../supabase/functions/calendar-event-ics/handler.mjs";
 
 const live = process.env.QA_TARGET === "production";
 const output = "calendar-browser-artifacts";
@@ -47,6 +48,9 @@ async function run() {
         acceptDownloads: true,
       });
       if (!live) {
+        await ctx.route("https://calendar.google.com/calendar/render?**", r => r.fulfill({ status: 204 }));
+        const appleHandler = createCalendarHandler({ supabaseUrl: endpoint, anonKey: "fixture",
+          fetchEvent: (url) => fetch(endpoint + url.pathname.slice(8) + url.search) });
         await ctx.route("**/js/supabase-config.js*", (r) =>
           r.fulfill({
             contentType: "application/javascript",
@@ -72,6 +76,11 @@ async function run() {
                 user,
               },
             });
+          if (url.pathname.startsWith("/functions/v1/calendar-event-ics/")) {
+            const response = await appleHandler(new Request(url, { method: request.method() }));
+            return r.fulfill({ status: response.status, headers: Object.fromEntries(response.headers),
+              body: await response.text() });
+          }
           assert.match(url.pathname, /^\/rest\/v1\//);
           const headers = { ...request.headers() };
           for (const k of [
@@ -104,11 +113,15 @@ async function run() {
       const visit = (path) =>
         p.goto(origin + path, { waitUntil: "domcontentloaded" });
       const activate = (loc) => (width < 500 ? loc.tap() : loc.click());
-      const assertWidth = async () =>
-        assert.equal(
-          await p.evaluate(() => document.documentElement.scrollWidth),
-          width,
-        );
+      const assertWidth = async () => {
+        const { viewport, content, scroll } = await p.evaluate(() => ({
+          viewport: window.innerWidth,
+          content: document.documentElement.clientWidth,
+          scroll: document.documentElement.scrollWidth,
+        }));
+        assert.equal(viewport, width);
+        assert.ok(scroll <= content, "no horizontal overflow");
+      };
       await visit("/calendar/");
       const row = (id) =>
         p
@@ -122,8 +135,8 @@ async function run() {
         "Шпага",
       ]);
       assert.deepEqual(await badges(9), ["Мужчины и женщины", "Шпага"]);
-      assert.deepEqual(await badges(10), ["Взрослые"]);
-      assert.deepEqual(await badges(11), ["2012–2017 г.р."]);
+      assert.deepEqual(await badges(10), ["Мужчины и женщины", "Шпага"]);
+      assert.deepEqual(await badges(11), ["Дети · 2012–2017 г.р.", "Шпага"]);
       if (!live) {
         assert.equal(await row(12).count(), 0);
         assert.equal(await row(101).locator(".event-participants").count(), 0);
@@ -148,6 +161,73 @@ async function run() {
         })
         .waitFor();
       assert.match(await dialog.innerText(), /Гаранина/);
+      const checkExport = async (card, id) => {
+        await activate(card.locator("summary", { hasText: "Добавить в календарь" }));
+        const apple = card.getByRole("link", { name: "Apple Календарь" });
+        const appleUrl = await apple.getAttribute("href");
+        assert.ok(appleUrl.endsWith("/calendar-event-ics/" + id + ".ics"));
+        assert.equal(await apple.getAttribute("download"), null);
+        const googleLink = card.getByRole("link", { name: "Google Календарь" });
+        const google = new URL(await googleLink.getAttribute("href"));
+        assert.equal(google.host, "calendar.google.com");
+        assert.equal(google.searchParams.get("action"), "TEMPLATE");
+        assert.match(google.searchParams.get("details"), new RegExp("id=" + id + "$"));
+        assert.equal(google.searchParams.get("text"), await card.getByRole("heading").first().textContent());
+        const location = await card.locator("dt").filter({ hasText: /^Где$/ })
+          .evaluate(label => label.nextElementSibling.textContent);
+        assert.equal(google.searchParams.get("location"), location);
+        if (!live) {
+          const [request] = await Promise.all([
+            p.waitForRequest(request => request.url() === google.href),
+            activate(googleLink),
+          ]);
+          assert.ok(request.isNavigationRequest());
+        }
+        if (id === 11) {
+          const [start, end] = google.searchParams.get("dates").split("/");
+          const parse = date => Date.parse(date.slice(0,4) + "-" + date.slice(4,6) + "-" + date.slice(6) + "T00:00:00Z");
+          assert.equal(parse(end) - parse(start), 2 * 86400000);
+        }
+        const [download] = await Promise.all([
+          p.waitForEvent("download"),
+          activate(card.getByRole("link", { name: "Скачать .ics" })),
+        ]);
+        assert.equal(download.suggestedFilename(), "ffto-event-" + id + ".ics");
+        const ics = await readFile(await download.path(), "utf8");
+        assert.ok(ics.replace(/\r\n /g, "").includes("URL:https://fencing-tomsk.ru/calendar/event/?id=" + id));
+        if (!live && id === 8) {
+          const [start, end] = google.searchParams.get("dates").split("/");
+          assert.equal(google.searchParams.get("ctz"), "Asia/Novosibirsk");
+          assert.match(start, /^\d{8}T030000Z$/);
+          assert.match(end, /^\d{8}T170000Z$/);
+          assert.match(ics, /TZID:Asia\/Novosibirsk\r\nBEGIN:STANDARD/);
+          assert.ok(ics.includes("DTSTART;TZID=Asia/Novosibirsk:" + start.slice(0, 8) + "T100000\r\n"));
+          assert.match(ics, /DTEND;TZID=Asia\/Novosibirsk:\d{8}T000000/);
+          assert.match(ics.replace(/\r\n /g, ""), /DESCRIPTION:Подробное положение\\nПервый старт /);
+        }
+        if (id === 11) {
+          const [start, end] = google.searchParams.get("dates").split("/");
+          assert.ok(ics.includes("DTSTART;VALUE=DATE:" + start + "\r\n"));
+          assert.ok(ics.includes("DTEND;VALUE=DATE:" + end + "\r\n"));
+        }
+        await assertWidth();
+        const options = card.locator(".event-calendar-options");
+        assert.ok(await options.evaluate(panel => panel.scrollWidth <= panel.clientWidth));
+        await options.screenshot({ path: output + "/export-" + id + "-" + width + ".png" });
+        if (!live) {
+          // Validate the actual target navigation and its HTTP response without
+          // inferring a native iOS import from Chromium's download behavior.
+          const [response] = await Promise.all([
+            p.waitForResponse(response => response.url() === appleUrl),
+            activate(apple),
+          ]);
+          assert.ok(response.request().isNavigationRequest());
+          assert.equal(response.status(), 200);
+          assert.match(response.headers()["content-type"], /^text\/calendar/);
+          assert.match(response.headers()["content-disposition"], /^inline/);
+        }
+      };
+      await checkExport(dialog, 8);
       await activate(dialog.getByRole("button", { name: "Закрыть карточку" }));
       await dialog.waitFor({ state: "hidden" });
       assert.ok(await link8.evaluate((a) => a === document.activeElement));
@@ -163,6 +243,7 @@ async function run() {
           .getByRole("heading", { name: title })
           .waitFor();
         await assertWidth();
+        if (id === 11) await checkExport(p.locator("#event-detail"), id);
       }
       await visit("/");
       await row(8).waitFor();

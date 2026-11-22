@@ -4035,3 +4035,60 @@ html.calendar-dialog-open {
 .event-participants li span {
   display: inline-block;
 }
+
+.event-calendar-options {
+  margin-top: 1.25rem;
+}
+
+.event-calendar-options > summary {
+  display: inline-flex;
+  min-height: 44px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.event-calendar-options > summary::-webkit-details-marker {
+  display: none;
+}
+
+.event-calendar-options > summary::after {
+  content: "";
+  width: .5rem;
+  height: .5rem;
+  margin-inline-start: .7rem;
+  border: solid currentColor;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.event-calendar-options[open] > summary::after {
+  transform: rotate(225deg);
+}
+
+.event-calendar-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem 1rem;
+  margin-block: .5rem;
+}
+
+.event-calendar-choices a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  max-width: 100%;
+}
+
+.event-calendar-options small {
+  display: block;
+  margin-top: .4rem;
+  color: var(--muted);
+}
+
+@media (max-width: 480px) {
+  .event-calendar-choices {
+    flex-direction: column;
+    align-items: start;
+    gap: 0;
+  }
+}

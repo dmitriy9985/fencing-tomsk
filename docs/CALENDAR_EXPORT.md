@@ -31,7 +31,9 @@ Apple документирует импорт .ics из приложения «�
    mkdir -p "$stage/supabase/functions/calendar-event-ics"
    deno bundle --no-config --no-lock --no-remote --check --platform deno \
      supabase/functions/calendar-event-ics/index.ts \
-     -o "$stage/supabase/functions/calendar-event-ics/index.ts"
+     -o "$stage/supabase/functions/calendar-event-ics/bundle.mjs"
+   printf '%s\n' 'import "./bundle.mjs";' > "$stage/supabase/functions/calendar-event-ics/index.ts"
+   deno check --no-config --no-lock --no-remote "$stage/supabase/functions/calendar-event-ics/index.ts"
    cd "$stage"
    supabase init
    supabase functions deploy calendar-event-ics --remote=PROJECT_REF --use-api --no-verify-jwt

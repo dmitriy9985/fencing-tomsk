@@ -34,7 +34,7 @@ Deno.serve({ hostname: Deno.args[0] || "127.0.0.1", port: 8787 }, async request 
   if (request.method !== "GET") return new Response(null, { status: 405 });
   if (path === "/rest/v1/competition_events") return jsonEvents(url);
   if (path === "/js/supabase-config.js") {
-    return new Response('window.SUPABASE_CONFIG={url:location.origin,anonKey:"preview-only"};', {
+    return new Response('window.SUPABASE_CONFIG={url:location.origin,anonKey:"local-calendar-preview-fixture"};', {
       headers: { "Content-Type": mimeTypes.js },
     });
   }
@@ -47,9 +47,20 @@ Deno.serve({ hostname: Deno.args[0] || "127.0.0.1", port: 8787 }, async request 
   const type = mimeTypes[file.split(".").at(-1)];
   if (!type) return new Response(null, { status: 404 });
   try {
-    return new Response(await Deno.readFile(new URL("." + file, repo)), {
-      headers: { "Content-Type": type, "Cache-Control": "no-store" },
-    });
+    const asset = new URL("." + file, repo);
+    let body;
+    if (path === "/js/site-content.js") {
+      // Allow the same-origin HTTP fixture without loosening the production configuration check.
+      const source = await Deno.readTextFile(asset);
+      const httpsCheck = 'value.url.startsWith("https://")';
+      if (!source.includes(httpsCheck)) {
+        return new Response("Calendar preview: configuration check changed.", { status: 500 });
+      }
+      body = source.replace(httpsCheck, 'value.url === location.origin');
+    } else {
+      body = await Deno.readFile(asset);
+    }
+    return new Response(body, { headers: { "Content-Type": type, "Cache-Control": "no-store" } });
   } catch (error) {
     if (!(error instanceof Deno.errors.NotFound)) throw error;
     return new Response(null, { status: 404 });

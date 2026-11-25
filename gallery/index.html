@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Фотоархив Федерации фехтования Томской области."><meta name="referrer" content="no-referrer">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self'; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
-  <title>Галерея · Федерация фехтования Томской области</title><link rel="icon" type="image/png" sizes="16x16" href="/images/logo/logoffto-16.png"><link rel="icon" type="image/png" sizes="32x32" href="/images/logo/logoffto.png?v=3.1"><link rel="stylesheet" href="/styles.css">
-  <script defer src="/js/site.js"></script><script defer src="/js/analytics.js"></script><script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script><script defer src="/js/supabase-config.js"></script><script defer src="/js/site-content.js"></script>
+  <title>Галерея · Федерация фехтования Томской области</title><link rel="icon" type="image/png" sizes="16x16" href="/images/logo/logoffto-16.png"><link rel="icon" type="image/png" sizes="32x32" href="/images/logo/logoffto.png?v=3.1"><link rel="stylesheet" href="/styles.css?v=gallery-grid">
+  <script defer src="/js/site.js?v=gallery-grid"></script><script defer src="/js/analytics.js"></script><script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script><script defer src="/js/supabase-config.js"></script><script defer src="/js/site-content.js?v=gallery-grid"></script><script defer src="/js/gallery-viewer.js"></script>
 </head>
 <body data-page="gallery">
   <a class="skip-link" href="#main-content">Перейти к содержанию</a>
@@ -15,9 +15,54 @@
       </nav></div></header>
   <main id="main-content">
     <section class="page-hero"><div class="wrap page-hero-inner"><div><p class="kicker kicker-light">Фотоархив</p><h1>Галерея</h1><p>Соревнования, награждения и события из жизни томских фехтовальщиков.</p></div><img class="page-hero-icon" src="/images/icons/gallery.svg" alt=""></div></section>
-    <section class="section gallery-section page-section"><div class="wrap"><p id="gallery-albums-notice" class="empty-state" role="status" hidden>Показана сохранённая подборка. Обновление временно недоступно.</p>
-        <div id="gallery-albums"><section class="gallery-album" aria-label="Фехтование в Томске"><div class="gallery-album-heading"><h2>Фехтование в Томске</h2></div><div class="gallery-grid"><figure class="gallery-photo gallery-featured landscape"><img src="/images/awards/tomsk2025/men.jpeg" width="1000" height="750" loading="lazy" decoding="async" alt="Первенство Томской области 2026"><figcaption>Первенство Томской области 2026</figcaption></figure><figure class="gallery-photo portrait"><img src="/images/awards/tomsk2025/womenu23.jpeg" width="750" height="1000" loading="lazy" decoding="async" alt="Первенство Томской области 2026"><figcaption>Первенство Томской области 2026</figcaption></figure><figure class="gallery-photo landscape"><img src="/images/awards/tomsk2025/women.jpeg" width="1000" height="750" loading="lazy" decoding="async" alt="Первенство Томской области 2026"><figcaption>Первенство Томской области 2026</figcaption></figure><figure class="gallery-photo landscape"><img src="/images/life/dayoftomsk2026.webp" width="1280" height="960" loading="lazy" decoding="async" alt="День города Томска 2026"><figcaption>День города Томска 2026</figcaption></figure><figure class="gallery-photo portrait"><img src="/images/awards/shutova2026/shutova2026.webp" width="1280" height="1707" loading="lazy" decoding="async" alt="Турнир на призы Любови Шутовой"><figcaption>Турнир на призы Любови Шутовой</figcaption></figure></div></section></div></div></section>
+    <section class="section gallery-section page-section">
+      <div class="wrap">
+        <p id="gallery-albums-notice" class="empty-state" role="status" hidden>Показана сохранённая подборка. Обновление временно недоступно.</p>
+        <div id="gallery-albums">
+          <section class="gallery-album" aria-label="Соревнования">
+            <div class="gallery-album-heading"><h2>Соревнования</h2></div>
+            <div class="gallery-grid">
+              <figure class="gallery-photo">
+                <a class="gallery-photo-frame" href="/images/awards/shutova2026/shutova2026.webp"><img src="/images/awards/shutova2026/shutova2026.webp" width="1280" height="1707" loading="lazy" decoding="async" alt="Турнир на призы Любови Шутовой"></a>
+                <figcaption>Турнир на призы Любови Шутовой</figcaption>
+              </figure>
+              <figure class="gallery-photo">
+                <a class="gallery-photo-frame" href="/images/awards/tomsk2025/men.jpeg"><img src="/images/awards/tomsk2025/men.jpeg" width="1000" height="750" loading="lazy" decoding="async" alt="Первенство Томской области 2026"></a>
+                <figcaption>Первенство Томской области 2026</figcaption>
+              </figure>
+              <figure class="gallery-photo">
+                <a class="gallery-photo-frame" href="/images/awards/tomsk2025/womenu23.jpeg"><img src="/images/awards/tomsk2025/womenu23.jpeg" width="750" height="1000" loading="lazy" decoding="async" alt="Первенство Томской области 2026"></a>
+                <figcaption>Первенство Томской области 2026</figcaption>
+              </figure>
+              <figure class="gallery-photo">
+                <a class="gallery-photo-frame" href="/images/awards/tomsk2025/women.jpeg"><img src="/images/awards/tomsk2025/women.jpeg" width="1000" height="750" loading="lazy" decoding="async" alt="Первенство Томской области 2026"></a>
+                <figcaption>Первенство Томской области 2026</figcaption>
+              </figure>
+            </div>
+          </section>
+          <section class="gallery-album" aria-label="Жизнь федерации">
+            <div class="gallery-album-heading"><h2>Жизнь федерации</h2></div>
+            <div class="gallery-grid">
+              <figure class="gallery-photo">
+                <a class="gallery-photo-frame" href="/images/life/dayoftomsk2026.webp"><img src="/images/life/dayoftomsk2026.webp" width="1280" height="960" loading="lazy" decoding="async" alt="День города Томска 2026"></a>
+                <figcaption>День города Томска 2026</figcaption>
+              </figure>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
   </main>
+  <dialog id="gallery-viewer" aria-label="Просмотр фотографии">
+    <div class="gallery-viewer-controls">
+      <button type="button" data-gallery-step="-1" aria-label="Предыдущая фотография">‹</button>
+      <span id="gallery-viewer-position" role="status"></span>
+      <button type="button" data-gallery-step="1" aria-label="Следующая фотография">›</button>
+      <button type="button" id="gallery-viewer-close" aria-label="Закрыть просмотр" autofocus>×</button>
+    </div>
+    <img id="gallery-viewer-image" alt="">
+    <p id="gallery-viewer-caption"></p>
+  </dialog>
   <footer class="site-footer"><div class="wrap footer-main"><div class="footer-brand"><img src="/images/logo/ffto-emblem-tgpu-144.webp?v=3cd7a2013566" width="144" height="144" alt=""><div><b>Федерация фехтования<br>Томской области</b><p>Официальный информационный ресурс региональной спортивной общественной организации.</p></div></div><div><h3>Разделы</h3><div class="footer-links"><a href="/news/">Новости</a><a href="/calendar/">Календарь</a><a href="/results/">Результаты</a><a href="/coaches/">Тренеры</a><a href="/organizations/">Организации</a><a href="/gallery/">Галерея</a><a href="/support/">Поддержать федерацию</a></div></div><div><h3>Контакты</h3><div class="footer-contacts"><a class="footer-contact-item" href="tel:+79833410327"><img src="/images/icons/phone.svg" alt="" aria-hidden="true"><span>8 (983) 341-03-27</span></a><a class="footer-contact-item" href="mailto:fencingtomsk@mail.ru"><img src="/images/icons/mail.svg" alt="" aria-hidden="true"><span>fencingtomsk@mail.ru</span></a><span class="footer-contact-item"><img src="/images/icons/location.svg" alt="" aria-hidden="true"><span>Томск, пр. Ленина, 207</span></span></div></div></div><div class="wrap footer-bottom"><span>© 2026 Федерация фехтования Томской области</span><span>Официальный сайт</span></div></footer>
 </body>
 </html>

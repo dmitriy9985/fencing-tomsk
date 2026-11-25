@@ -692,7 +692,7 @@
 
     const heading = document.createElement("div");
     heading.className = "gallery-album-heading";
-    const title = document.createElement("h3");
+    const title = document.createElement("h2");
     title.textContent = album.title || "Фотоальбом";
     heading.append(title);
 
@@ -710,29 +710,37 @@
 
     const grid = document.createElement("div");
     grid.className = "gallery-grid";
-    photos.forEach((photo, index) => grid.append(createPhoto(photo, album.title, index === 0)));
+    photos.forEach((photo) => grid.append(createPhoto(photo, album.title)));
     section.append(grid);
     return section;
   }
 
-  function createPhoto(photo, albumTitle, featured) {
+  function createPhoto(photo, albumTitle) {
     const figure = document.createElement("figure");
-    figure.className = featured ? "gallery-photo gallery-featured" : "gallery-photo";
+    figure.className = "gallery-photo";
 
     const imageUrl = resolveUrl(photo.image_url);
+    const frame = document.createElement(imageUrl ? "a" : "div");
+    frame.className = "gallery-photo-frame";
     const image = document.createElement("img");
     image.alt = photo.alt_text || photo.caption || albumTitle || "Фотография из галереи";
     image.loading = "lazy";
+    image.decoding = "async";
     if (imageUrl) {
+      frame.href = imageUrl;
+      image.addEventListener("error", () => {
+        frame.classList.add("image-error");
+        frame.removeAttribute("href");
+      }, { once: true });
       image.src = imageUrl;
-      image.addEventListener("error", () => figure.classList.add("image-error"), { once: true });
     } else {
-      figure.classList.add("image-error");
+      frame.classList.add("image-error");
     }
 
     const caption = document.createElement("figcaption");
     caption.textContent = photo.caption || photo.alt_text || albumTitle || "";
-    figure.append(image, caption);
+    frame.append(image);
+    figure.append(frame, caption);
     return figure;
   }
 

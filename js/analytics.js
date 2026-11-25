@@ -2,7 +2,7 @@
   "use strict";
 
   const counterId = 114258187;
-  const analyticsEnabled = false; // Включать после утверждения документов и разрешения на публикацию.
+  const analyticsEnabled = true;
   const preferenceKey = "ffto-analytics-v4";
   const messengerSources = new Set(["telegram", "whatsapp", "viber", "skype", "wechat"]);
   const siteOrigin = "https://fencing-tomsk.ru";

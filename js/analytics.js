@@ -4,21 +4,24 @@
   const counterId = 114258187;
   const analyticsEnabled = false; // Включать после утверждения документов и разрешения на публикацию.
   const preferenceKey = "ffto-analytics-v4";
+  const messengerSources = new Set(["telegram", "whatsapp", "viber", "skype", "wechat"]);
   const siteOrigin = "https://fencing-tomsk.ru";
   const publicPages = new Set([
     "/", "/start/", "/training/", "/news/", "/calendar/", "/results/",
-    "/coaches/", "/organizations/", "/gallery/", "/contacts/", "/privacy/", "/privacy/analytics-consent/"
+    "/calendar/event/", "/coaches/", "/organizations/", "/gallery/", "/contacts/",
+    "/equipment/", "/support/", "/privacy/", "/privacy/analytics-consent/"
   ]);
   const pagePath = location.pathname.replace(/index\.html$/, "");
-  if (!publicPages.has(pagePath)) return;
+  if (!analyticsEnabled || location.origin !== siteOrigin || !publicPages.has(pagePath)) return;
+
+  const disableFlag = "disableYaCounter" + counterId;
+  window[disableFlag] = true;
 
   const footer = document.querySelector(".footer-bottom");
   const links = document.createElement("div");
   links.className = "footer-analytics";
   links.innerHTML = '<a class="footer-privacy" href="/privacy/">Конфиденциальность</a>';
   footer?.append(links);
-
-  if (!analyticsEnabled || location.origin !== siteOrigin || !Number.isSafeInteger(counterId) || counterId <= 0) return;
 
   let tag;
   let active = false;
@@ -60,11 +63,29 @@
     return true;
   }
 
+  function pageAllowsAnalytics() {
+    const query = new URLSearchParams(location.search);
+    const seen = new Set();
+    for (const [name, value] of query) {
+      if (seen.has(name)) return false;
+      seen.add(name);
+      if (name === "id" && ["/news/", "/calendar/event/"].includes(pagePath) && /^[1-9]\d{0,9}$/.test(value)) continue;
+      if (name === "utm_medium" && value === "messenger" && messengerSources.has(query.get("utm_source"))) continue;
+      if (name === "utm_source" && messengerSources.has(value) && query.get("utm_medium") === "messenger") continue;
+      return false;
+    }
+
+    // The vendor tag can also use the current URL for its own requests.
+    // Only allow fragments that identify an existing public page anchor.
+    const fragment = location.hash.slice(1);
+    return !fragment || (/^[a-z][a-z0-9-]{0,79}$/.test(fragment) && !!document.getElementById(fragment));
+  }
+
   function pageUrlForAnalytics() {
     const url = new URL(pagePath, siteOrigin);
     const query = new URLSearchParams(location.search);
     const source = query.get("utm_source");
-    if (query.get("utm_medium") === "messenger" && ["telegram", "whatsapp", "viber", "skype", "wechat"].includes(source)) {
+    if (query.get("utm_medium") === "messenger" && messengerSources.has(source)) {
       url.searchParams.set("utm_medium", "messenger");
       url.searchParams.set("utm_source", source);
     }
@@ -85,7 +106,7 @@
   }
 
   function startCounter() {
-    if (tag || readChoice() !== "yes") return;
+    if (tag || readChoice() !== "yes" || !pageAllowsAnalytics()) return;
 
     const ym = function () { (ym.a ||= []).push(arguments); };
     ym.l = Date.now();
@@ -96,7 +117,8 @@
     script.referrerPolicy = "no-referrer";
     script.src = "https://mc.yandex.ru/metrika/tag.js";
     script.addEventListener("load", () => {
-      if (tag !== script || readChoice() !== "yes") return;
+      if (tag !== script || readChoice() !== "yes" || !pageAllowsAnalytics()) return;
+      window[disableFlag] = false;
       window.ym(counterId, "init", {
         defer: true, webvisor: false, clickmap: false, trackLinks: false,
         trackHash: false, accurateTrackBounce: false, ecommerce: false,
@@ -109,6 +131,7 @@
   }
 
   function stopCounter(reload = true) {
+    window[disableFlag] = true;
     if (!tag) return;
     const wasActive = active;
     active = false;
@@ -138,8 +161,7 @@
   notice.setAttribute("aria-labelledby", "analytics-heading");
   notice.innerHTML = `
     <h2 id="analytics-heading" tabindex="-1">Аналитика сайта</h2>
-    <p>С вашего согласия Яндекс Метрика использует cookies и данные о посещении для статистики. Выбор можно изменить в подвале сайта.</p>
-    <p><a href="/privacy/analytics-consent/">Согласие на аналитику</a></p>
+    <p>Яндекс Метрика собирает статистику посещений с вашего согласия. <a href="/privacy/analytics-consent/">Условия согласия</a>.</p>
     <div class="analytics-actions">
       <button type="button" data-choice="no">Отклонить</button>
       <button type="button" data-choice="yes">Разрешить аналитику</button>
@@ -181,19 +203,20 @@
 
   function syncChoice() {
     const choice = readChoice();
-    if (choice === "yes") startCounter();
+    if (choice === "yes" && pageAllowsAnalytics()) startCounter();
     else stopCounter(choice === "no");
-    showNotice(choice === null);
+    showNotice(choice === null && !pagePath.startsWith("/privacy/"));
   }
 
   window.addEventListener("storage", event => {
     if (event.key === preferenceKey || event.key === null) syncChoice();
   });
+  window.addEventListener("hashchange", syncChoice);
   window.addEventListener("pageshow", event => {
     if (event.persisted) syncChoice();
   });
   document.addEventListener("click", event => {
-    if (!active || readChoice() !== "yes") return;
+    if (!active || readChoice() !== "yes" || !pageAllowsAnalytics()) return;
     const link = event.target.closest("a[href]");
     if (!link) return;
     const href = link.getAttribute("href");

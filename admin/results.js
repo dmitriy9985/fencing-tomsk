@@ -387,57 +387,26 @@
     };
     setWorking(true, elements.save, "Сохраняем…");
     api.hideMessage();
-    let parentSaved = false;
     try {
-      const query = editingItem
-        ? api.getClient().from("competition_results").update(payload).eq("id", editingItem.id)
-        : api.getClient().from("competition_results").insert(payload);
-      const { data, error } = await query.select("id").single();
+      const { error } = await api.getClient().rpc("save_competition_result", {
+        p_id: editingItem?.id ?? null,
+        p_expected_updated_at: editingItem?.updated_at ?? null,
+        p_result: payload,
+        p_entries: formEntries.map((entry, index) => ({ ...entryPayload(entry, index), id: entry.id })),
+        p_removed_ids: [...removedEntryIds]
+      });
       if (error) throw error;
-      parentSaved = true;
-      if (!editingItem) {
-        editingItem = { id: data.id };
-      }
-      await saveEntries(data.id);
       api.setDirty(sectionName, false);
       discardChanges();
       await loadAll();
       api.showMessage("Результат сохранён.", "success");
     } catch (error) {
-      const fallback = parentSaved
-        ? "Турнир сохранён, но часть призовых мест сохранить не удалось. Не закрывайте форму и повторите сохранение."
-        : "Не удалось сохранить результат.";
-      const readable = api.readableError(error, fallback);
-      api.showMessage(parentSaved && readable !== fallback ? `${fallback} ${readable}` : readable, "error");
+      const message = error.code === "PT409"
+        ? "Запись уже изменилась. Скопируйте свои правки и откройте обновлённый результат."
+        : api.readableError(error, "Не удалось сохранить результат.");
+      api.showMessage(message, "error");
     } finally {
       setWorking(false, elements.save, "Сохранить");
-    }
-  }
-
-  async function saveEntries(parentId) {
-    const existing = formEntries.filter((entry) => entry.id != null);
-    const fresh = formEntries.filter((entry) => entry.id == null);
-    for (let index = 0; index < existing.length; index += 1) {
-      const entry = existing[index];
-      const { error } = await api.getClient().from("competition_result_entries")
-        .update(entryPayload(entry, formEntries.indexOf(entry))).eq("id", entry.id).eq("competition_result_id", parentId);
-      if (error) throw error;
-    }
-    if (fresh.length > 0) {
-      const payload = fresh.map((entry) => ({ ...entryPayload(entry, formEntries.indexOf(entry)), competition_result_id: parentId }));
-      const { data, error } = await api.getClient().from("competition_result_entries").insert(payload).select("id,sort_order");
-      if (error) throw error;
-      (Array.isArray(data) ? data : []).forEach((saved) => {
-        const entry = formEntries[numberValue(saved.sort_order)];
-        if (entry && entry.id == null) {
-          entry.id = saved.id;
-        }
-      });
-    }
-    if (removedEntryIds.size > 0) {
-      const { error } = await api.getClient().from("competition_result_entries").delete()
-        .eq("competition_result_id", parentId).in("id", [...removedEntryIds]);
-      if (error) throw error;
     }
   }
 

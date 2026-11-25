@@ -4,18 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Бесплатные занятия фехтованием на шпагах в Томске. Как записаться, где проходят тренировки и что взять на первое занятие.">
-  <meta name="referrer" content="same-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://mc.yandex.ru; style-src 'self'; img-src 'self' https://mc.yandex.ru; connect-src 'self' https://mc.yandex.ru; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://mc.yandex.ru; style-src 'self'; img-src 'self' https://mc.yandex.ru; object-src 'none'; base-uri 'self'; form-action 'self'; connect-src 'self' https://mc.yandex.ru">
   <title>Начать заниматься · Федерация фехтования Томской области</title>
-  <link rel="icon" href="/images/logo/logoffto.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/logo/logoffto-16.png"><link rel="icon" type="image/png" sizes="32x32" href="/images/logo/logoffto.png?v=3.1">
   <link rel="stylesheet" href="/styles.css">
   <script defer src="/js/site.js"></script><script defer src="/js/analytics.js"></script>
 </head>
 <body data-page="start">
   <a class="skip-link" href="#main-content">Перейти к содержанию</a>
-  <header class="site-header"><div class="wrap header-inner"><a class="brand" href="/" aria-label="На главную"><img src="/images/logo/logoffto.png" alt=""><span><b>Фехтование в Томске</b><small>Федерация фехтования Томской области</small></span></a><button class="mobile-menu" id="mobile-menu" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Открыть меню"><span></span><span></span><span></span></button><nav class="desktop-nav site-nav" id="site-nav" aria-label="Основная навигация">
+  <header class="site-header"><div class="wrap header-inner"><a class="brand" href="/" aria-label="На главную"><img src="/images/logo/ffto-emblem-tgpu-144.webp?v=3cd7a2013566" width="144" height="144" alt=""><span><b>Фехтование в Томске</b><small>Федерация фехтования Томской области</small></span></a><button class="mobile-menu" id="mobile-menu" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Открыть меню"><span></span><span></span><span></span></button><nav class="desktop-nav site-nav" id="site-nav" aria-label="Основная навигация">
         <a href="/" data-nav="home">Главная</a><a href="/news/" data-nav="news">Новости</a><a href="/training/" data-nav="training">Тренировки</a><a href="/calendar/" data-nav="calendar">Календарь</a><a href="/results/" data-nav="results">Результаты</a>
-        <details class="nav-more"><summary>Ещё</summary><div class="nav-more-links"><a href="/coaches/" data-nav="coaches">Тренеры</a><a href="/organizations/" data-nav="organizations">Организации</a><a href="/gallery/" data-nav="gallery">Галерея</a><a href="/contacts/" data-nav="contacts">Контакты</a></div></details>
+        <details class="nav-more"><summary>Ещё</summary><div class="nav-more-links"><a href="/coaches/" data-nav="coaches">Тренеры</a><a href="/organizations/" data-nav="organizations">Организации</a><a href="/equipment/" data-nav="equipment">Экипировка</a><a href="/gallery/" data-nav="gallery">Галерея</a><a href="/contacts/" data-nav="contacts">Контакты</a><a href="/support/" data-nav="support">Поддержать федерацию</a></div></details>
         <a href="/start/" data-nav="start" class="button button-red nav-start">Начать заниматься</a>
       </nav></div></header>
   <main id="main-content">
@@ -23,13 +23,13 @@
       <div class="wrap page-hero-inner">
         <div>
           <h1><span>Бесплатные занятия</span> фехтованием в Томске</h1>
-          <p>В нашей секции занимаются фехтованием на шпагах. Тренировки в государственном спортивном учреждении бесплатны на постоянной основе. При обращении поможем подобрать группу и время.</p>
+          <p>Бесплатные занятия на шпагах проходят в УСЦ им. В. А. Шевелёва в зале «Акватика» на Ленина. При обращении поможем подобрать группу и время.</p>
           <div class="hero-actions">
-            <a class="button button-red" href="#enrollment" data-analytics-goal="enrollment_interest">Записаться на занятия</a>
-            <a class="button button-ghost" href="/training/" data-analytics-goal="training_schedule_open">Расписание тренировок</a>
+            <a class="button button-red" href="#enrollment" data-analytics-goal="enrollment_interest">Контакты для записи</a>
+            <a class="button button-ghost" href="/training/" data-analytics-goal="training_schedule_open">Расписание на Ленина</a>
           </div>
         </div>
-        <a class="start-venue-short" href="#training-places">
+        <a class="start-venue-short" href="/organizations/#aquatika">
           <img src="/images/icons/location.svg" alt="" width="26" height="26">
           <span><strong>УСЦ им. В. А. Шевелёва</strong><br>Томск, пр. Ленина, 207</span>
         </a>
@@ -41,23 +41,24 @@
         <ol class="start-steps" role="list">
           <li><strong>Свяжитесь с федерацией</strong><p>Сообщите возраст будущего спортсмена.</p></li>
           <li><strong>Согласуйте первое посещение</strong><p>Уточните подходящую группу, наличие мест и время.</p></li>
-          <li><strong>Подготовьтесь и приходите</strong><p>Возьмите спортивную одежду, чистую сменную обувь и воду.</p></li>
+          <li><strong>Подготовьтесь и приходите</strong><p><a class="start-link" href="#first-visit">Посмотрите, что взять на первое занятие.</a></p></li>
         </ol>
       </section>
       <div class="start-visit">
         <section id="training-places" aria-labelledby="start-venue-title">
           <h2 id="start-venue-title">Где проходят тренировки</h2>
-          <p><strong>УСЦ им. В. А. Шевелёва</strong><br>Томск, проспект Ленина, 207</p>
-          <a class="start-link" href="https://www.rusfencing.ru/org_card.php?ID=202597">Карточка организации на сайте ФФР</a>
+          <p>В справочнике есть адреса залов, карты и контакты для записи.</p>
+          <p class="start-places-link"><a class="start-link" href="/organizations/#training-places">Все места занятий</a></p>
         </section>
-        <section aria-labelledby="start-first-title">
+        <section id="first-visit" aria-labelledby="start-first-title">
           <h2 id="start-first-title">Что взять на первое занятие</h2>
           <ul>
             <li>Удобную спортивную одежду</li>
             <li>Чистую сменную обувь</li>
             <li>Воду</li>
           </ul>
-          <p>Заранее уточните всё об экипировке и необходимых документах.</p>
+          <p>Заранее уточните у тренера, что выдадут в зале и какие документы взять.</p>
+          <a class="button button-outline" href="/equipment/">Памятка по экипировке</a>
         </section>
       </div>
       <section class="start-enrollment" id="enrollment" aria-labelledby="start-enrollment-title" tabindex="-1">
@@ -73,6 +74,6 @@
       </section>
     </div>
   </main>
-  <footer class="site-footer"><div class="wrap footer-main"><div class="footer-brand"><img src="/images/logo/logoffto.png" alt=""><div><b>Федерация фехтования<br>Томской области</b><p>Официальный информационный ресурс региональной спортивной общественной организации.</p></div></div><div><h3>Разделы</h3><div class="footer-links"><a href="/news/">Новости</a><a href="/calendar/">Календарь</a><a href="/results/">Результаты</a><a href="/coaches/">Тренеры</a><a href="/organizations/">Организации</a><a href="/gallery/">Галерея</a></div></div><div><h3>Контакты</h3><div class="footer-contacts"><a class="footer-contact-item" href="tel:+79833410327"><img src="/images/icons/phone.svg" alt="" aria-hidden="true"><span>8 (983) 341-03-27</span></a><a class="footer-contact-item" href="mailto:fencingtomsk@mail.ru"><img src="/images/icons/mail.svg" alt="" aria-hidden="true"><span>fencingtomsk@mail.ru</span></a><span class="footer-contact-item"><img src="/images/icons/location.svg" alt="" aria-hidden="true"><span>Томск, пр. Ленина, 207</span></span></div></div></div><div class="wrap footer-bottom"><span>© 2026 Федерация фехтования Томской области</span><span>Официальный сайт</span></div></footer>
+  <footer class="site-footer"><div class="wrap footer-main"><div class="footer-brand"><img src="/images/logo/ffto-emblem-tgpu-144.webp?v=3cd7a2013566" width="144" height="144" alt=""><div><b>Федерация фехтования<br>Томской области</b><p>Официальный информационный ресурс региональной спортивной общественной организации.</p></div></div><div><h3>Разделы</h3><div class="footer-links"><a href="/news/">Новости</a><a href="/calendar/">Календарь</a><a href="/results/">Результаты</a><a href="/coaches/">Тренеры</a><a href="/organizations/">Организации</a><a href="/gallery/">Галерея</a><a href="/support/">Поддержать федерацию</a></div></div><div><h3>Контакты</h3><div class="footer-contacts"><a class="footer-contact-item" href="tel:+79833410327"><img src="/images/icons/phone.svg" alt="" aria-hidden="true"><span>8 (983) 341-03-27</span></a><a class="footer-contact-item" href="mailto:fencingtomsk@mail.ru"><img src="/images/icons/mail.svg" alt="" aria-hidden="true"><span>fencingtomsk@mail.ru</span></a><span class="footer-contact-item"><img src="/images/icons/location.svg" alt="" aria-hidden="true"><span>Томск, пр. Ленина, 207</span></span></div></div></div><div class="wrap footer-bottom"><span>© 2026 Федерация фехтования Томской области</span><span>Официальный сайт</span></div></footer>
 </body>
 </html>

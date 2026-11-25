@@ -1284,3 +1284,50 @@ input[type="file"] {
     flex: 1;
   }
 }
+
+.calendar-details-fields {
+  display: grid;
+  min-width: 0;
+  gap: 16px;
+  padding: 16px;
+  margin: 0;
+  border: 1px solid var(--border);
+}
+.calendar-details-fields legend { font-weight: 700; }
+.calendar-details-fields input { min-width: 0; width: 100%; }
+
+.calendar-filters {
+  flex-wrap: wrap;
+}
+
+.calendar-filters .compact-control {
+  min-width: 0;
+}
+
+.calendar-participant-groups {
+  display: grid;
+  gap: 10px;
+}
+
+.calendar-participant-group {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px;
+}
+
+#calendar-add-participant-group {
+  justify-self: start;
+}
+
+@media (max-width: 680px) {
+  .calendar-participant-group {
+    grid-template-columns: minmax(0, 1fr);
+    padding-bottom: 8px;
+    border-bottom: 1px solid #dbe3ee;
+  }
+
+  .calendar-participant-group button {
+    justify-self: start;
+  }
+}

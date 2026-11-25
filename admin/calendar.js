@@ -30,11 +30,22 @@
     description: document.getElementById("calendar-description"),
     category: document.getElementById("calendar-category"),
     shortLabel: document.getElementById("calendar-short-label"),
+    participantGroups: document.getElementById("calendar-participant-groups"),
+    addGroup: document.getElementById("calendar-add-participant-group"),
+    weapon: document.getElementById("calendar-weapon"),
+    startTime: document.getElementById("calendar-start-time"),
+    meetingTime: document.getElementById("calendar-meeting-time"),
+    zone: document.getElementById("calendar-zone"),
+    contact: document.getElementById("calendar-contact"),
+    regulation: document.getElementById("calendar-regulation"),
+    documentTitle: document.getElementById("calendar-document-title"),
+    documentUrl: document.getElementById("calendar-document-url"),
     published: document.getElementById("calendar-published"),
     save: document.getElementById("calendar-save-button"),
     cancel: document.getElementById("calendar-cancel-button"),
     refresh: document.getElementById("calendar-refresh-button"),
-    sort: document.getElementById("calendar-sort"),
+    period: document.getElementById("calendar-period"),
+    publication: document.getElementById("calendar-publication"),
     list: document.getElementById("calendar-list"),
     previewDate: document.getElementById("calendar-preview-date"),
     previewTitle: document.getElementById("calendar-preview-title"),
@@ -56,9 +67,14 @@
     elements.add.addEventListener("click", openCreateForm);
     elements.close.addEventListener("click", () => closeEditor(true));
     elements.cancel.addEventListener("click", () => closeEditor(true));
+    elements.addGroup.addEventListener("click", () => {
+      appendParticipantGroup().focus();
+      api.setDirty(sectionName, true);
+    });
     elements.form.addEventListener("submit", saveItem);
     elements.refresh.addEventListener("click", loadItems);
-    elements.sort.addEventListener("change", renderList);
+    elements.period.addEventListener("change", renderList);
+    elements.publication.addEventListener("change", renderList);
     elements.datePrecision.addEventListener("change", () => {
       syncDateFields();
       if (!elements.editor.hidden) {
@@ -77,6 +93,8 @@
   async function activate() {
     if (!loaded) {
       await loadItems();
+    } else {
+      renderList();
     }
   }
 
@@ -90,7 +108,7 @@
     try {
       const { data, error } = await client
         .from("competition_events")
-        .select("id,title,start_date,end_date,date_precision,date_month,date_year,sort_date,location,description,category_label,short_label,published,created_at,updated_at")
+        .select("id,title,start_date,end_date,date_precision,date_month,date_year,sort_date,location,description,category_label,short_label,participant_groups,weapon_label,start_time,meeting_time,time_zone,organizer_contact,regulation_url,document_title,document_url,published,created_at,updated_at")
         .order("sort_date", { ascending: true })
         .order("created_at", { ascending: false });
       if (error) {
@@ -112,10 +130,11 @@
       elements.list.replaceChildren(api.createStateBlock("Событий пока нет. Нажмите «Добавить событие»."));
       return;
     }
-    const sorted = [...items].sort((left, right) => {
-      const direction = elements.sort.value === "desc" ? -1 : 1;
-      return calendarSortKey(left).localeCompare(calendarSortKey(right)) * direction;
-    });
+    const sorted = window.CalendarFilter.select(items, elements.period.value, elements.publication.value);
+    if (sorted.length === 0) {
+      elements.list.replaceChildren(api.createStateBlock("Событий по выбранным фильтрам нет."));
+      return;
+    }
     const fragment = document.createDocumentFragment();
     sorted.forEach((item) => fragment.append(createRow(item)));
     elements.list.replaceChildren(fragment);
@@ -134,6 +153,13 @@
     content.append(date, title, details, status);
 
     const actions = api.createElement("div", { className: "record-actions" });
+    if (item.published) {
+      const link = api.createElement("a", { text: "Карточка", className: "button button-secondary button-small" });
+      link.href = "/calendar/event/?id=" + encodeURIComponent(item.id);
+      link.target = "_blank";
+      link.rel = "noopener";
+      actions.append(link);
+    }
     actions.append(
       createButton(item.published ? "В черновик" : "Опубликовать", "button button-secondary button-small", () => togglePublished(item)),
       createButton("Изменить", "button button-secondary button-small", () => openEditForm(item)),
@@ -150,8 +176,10 @@
     editingItem = null;
     elements.form.reset();
     elements.datePrecision.value = "exact";
-    elements.startDate.value = api.todayAsInputValue();
-    elements.dateYear.value = String(new Date().getFullYear());
+    showParticipantGroups([]);
+    const today = window.CalendarFilter.today();
+    elements.startDate.value = today;
+    elements.dateYear.value = today.slice(0, 4);
     elements.editorTitle.textContent = "Новое событие";
     elements.editor.hidden = false;
     api.setDirty(sectionName, false);
@@ -176,6 +204,15 @@
     elements.description.value = item.description || "";
     elements.category.value = item.category_label || "";
     elements.shortLabel.value = item.short_label || "";
+    elements.weapon.value = item.weapon_label || "";
+    showParticipantGroups(item.participant_groups);
+    elements.startTime.value = (item.start_time || "").slice(0, 5);
+    elements.meetingTime.value = (item.meeting_time || "").slice(0, 5);
+    elements.zone.value = item.time_zone || "";
+    elements.contact.value = item.organizer_contact || "";
+    elements.regulation.value = item.regulation_url || "";
+    elements.documentTitle.value = item.document_title || "";
+    elements.documentUrl.value = item.document_url || "";
     elements.published.checked = Boolean(item.published);
     elements.editorTitle.textContent = "Изменение события";
     elements.editor.hidden = false;
@@ -183,6 +220,36 @@
     syncDateFields();
     updatePreview();
     focusEditor();
+  }
+
+  function showParticipantGroups(groups) {
+    elements.participantGroups.replaceChildren();
+    if (groups?.length) groups.forEach(appendParticipantGroup);
+    else appendParticipantGroup();
+  }
+
+  function appendParticipantGroup(group = {}) {
+    const row = api.createElement("div", { className: "calendar-participant-group" });
+    function field(label, value, maxLength, placeholder) {
+      const wrapper = api.createElement("label", { text: label });
+      const input = document.createElement("input");
+      input.type = "text";
+      input.value = value || "";
+      input.maxLength = maxLength;
+      input.placeholder = placeholder;
+      wrapper.append(input);
+      row.append(wrapper);
+      return input;
+    }
+    const category = field("Возрастная категория", group.label, 64, "Юниоры и юниорки");
+    field("Годы рождения", group.birth_years, 48, "2007–2013");
+    row.append(createButton("Убрать группу", "button button-secondary button-small", () => {
+      row.remove();
+      elements.addGroup.focus();
+      api.setDirty(sectionName, true);
+    }));
+    elements.participantGroups.append(row);
+    return category;
   }
 
   function prepareForAnotherForm() {
@@ -208,6 +275,7 @@
     editingItem = null;
     elements.editor.hidden = true;
     elements.form.reset();
+    elements.participantGroups.replaceChildren();
     api.setDirty(sectionName, false);
   }
 
@@ -242,6 +310,40 @@
       return;
     }
 
+    const hasTime = Boolean(elements.startTime.value || elements.meetingTime.value);
+    const zone = elements.zone.value.trim();
+    if (hasTime) {
+      try {
+        if (!zone) throw new RangeError();
+        new Intl.DateTimeFormat("ru", { timeZone: zone });
+      } catch {
+        return reportInvalid(elements.zone, "Укажите часовой пояс, например Asia/Tomsk.");
+      }
+    }
+    const documentTitle = elements.documentTitle.value.trim();
+    const documentUrl = elements.documentUrl.value.trim();
+    if (Boolean(documentTitle) !== Boolean(documentUrl)) {
+      return reportInvalid(documentTitle ? elements.documentUrl : elements.documentTitle,
+        "Для дополнительного документа нужны и название, и ссылка.");
+    }
+    const participantGroups = [];
+    for (const group of elements.participantGroups.children) {
+      const [category, years] = group.querySelectorAll("input");
+      const label = category.value.trim();
+      const birthYears = years.value.trim().replace(/\s*[-–—]\s*/g, "–").replace(/\s*,\s*/g, ", ");
+      if (birthYears && !/^(?:\d{4} и (?:младше|старше)|\d{4}(?:–\d{4})?(?:, \d{4}(?:–\d{4})?)*)$/.test(birthYears)) {
+        return reportInvalid(years, "Укажите год, диапазон 2007–2013, список через запятую или, например, «2012 и младше».");
+      }
+      if (birthYears.split(", ").some(range => {
+        const [from, to] = range.split("–");
+        return to && from > to;
+      })) {
+        return reportInvalid(years, "Укажите годы в диапазоне от меньшего к большему.");
+      }
+      if (label || birthYears) {
+        participantGroups.push({ ...(label && { label }), ...(birthYears && { birth_years: birthYears }) });
+      }
+    }
     const payload = {
       title: elements.title.value.trim(),
       date_precision: datePrecision,
@@ -253,6 +355,15 @@
       description: elements.description.value.trim(),
       category_label: elements.category.value.trim(),
       short_label: elements.shortLabel.value.trim(),
+      participant_groups: participantGroups,
+      weapon_label: elements.weapon.value.trim() || null,
+      start_time: elements.startTime.value || null,
+      meeting_time: elements.meetingTime.value || null,
+      time_zone: hasTime ? zone : null,
+      organizer_contact: elements.contact.value.trim() || null,
+      regulation_url: elements.regulation.value.trim() || null,
+      document_title: documentTitle || null,
+      document_url: documentUrl || null,
       published: elements.published.checked
     };
 
@@ -275,6 +386,12 @@
     } finally {
       setWorking(false, elements.save, "Сохранить");
     }
+  }
+
+  function reportInvalid(input, message) {
+    input.setCustomValidity(message);
+    input.reportValidity();
+    input.setCustomValidity("");
   }
 
   async function togglePublished(item) {
@@ -364,16 +481,6 @@
     return value === "month" || value === "approximate" ? value : "exact";
   }
 
-  function calendarSortKey(item) {
-    if (item.sort_date) {
-      return item.sort_date;
-    }
-    if (normalizePrecision(item.date_precision) === "month" && item.date_year && item.date_month) {
-      return `${item.date_year}-${String(item.date_month).padStart(2, "0")}-15`;
-    }
-    return item.start_date || "9999-12-31";
-  }
-
   function formatEventDate(item) {
     const precision = normalizePrecision(item.date_precision);
     if (precision === "month") {
@@ -428,6 +535,8 @@
 
   function reset() {
     items = [];
+    elements.period.value = "current";
+    elements.publication.value = "all";
     loaded = false;
     working = false;
     discardChanges();

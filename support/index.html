@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Добровольная поддержка Федерации фехтования Томской области.">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://mc.yandex.ru; style-src 'self'; img-src 'self' https://mc.yandex.ru; object-src 'none'; base-uri 'self'; form-action 'none'; connect-src 'self' https://mc.yandex.ru">
+  <title>Поддержать федерацию · Федерация фехтования Томской области</title>
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/logo/logoffto-16.png"><link rel="icon" type="image/png" sizes="32x32" href="/images/logo/logoffto.png?v=3.1">
+  <link rel="stylesheet" href="/styles.css">
+  <script defer src="/js/site.js"></script><script defer src="/js/analytics.js"></script>
+  <script defer src="/js/donation.js"></script>
+</head>
+<body data-page="support">
+  <a class="skip-link" href="#main-content">Перейти к содержанию</a>
+  <header class="site-header"><div class="wrap header-inner"><a class="brand" href="/" aria-label="На главную"><img src="/images/logo/ffto-emblem-tgpu-144.webp?v=3cd7a2013566" width="144" height="144" alt=""><span><b>Фехтование в Томске</b><small>Федерация фехтования Томской области</small></span></a><button class="mobile-menu" id="mobile-menu" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Открыть меню"><span></span><span></span><span></span></button><nav class="desktop-nav site-nav" id="site-nav" aria-label="Основная навигация">
+        <a href="/" data-nav="home">Главная</a><a href="/news/" data-nav="news">Новости</a><a href="/training/" data-nav="training">Тренировки</a><a href="/calendar/" data-nav="calendar">Календарь</a><a href="/results/" data-nav="results">Результаты</a>
+        <details class="nav-more"><summary>Ещё</summary><div class="nav-more-links"><a href="/coaches/" data-nav="coaches">Тренеры</a><a href="/organizations/" data-nav="organizations">Организации</a><a href="/equipment/" data-nav="equipment">Экипировка</a><a href="/gallery/" data-nav="gallery">Галерея</a><a href="/contacts/" data-nav="contacts">Контакты</a><a href="/support/" data-nav="support">Поддержать федерацию</a></div></details>
+        <a href="/start/" data-nav="start" class="button button-red nav-start">Начать заниматься</a>
+      </nav></div></header>
+  <main id="main-content">
+    <section class="page-hero resource-hero support-hero">
+      <div class="wrap page-hero-inner">
+        <div>
+          <h1>Поддержать федерацию</h1>
+          <p>Федерация фехтования Томской области развивает спорт в регионе благодаря работе тренеров и поддержке людей, которым небезразлично фехтование.</p>
+          <p>Вы можете поддержать деятельность федерации добровольным взносом на любую удобную сумму.</p>
+          <a class="button button-white support-qr-link" href="#payment-qr">К QR-коду</a>
+        </div>
+      </div>
+    </section>
+    <div class="wrap resource-content" id="donation-content">
+      <section class="resource-card" aria-labelledby="donation-uses-title">
+        <h2 id="donation-uses-title">На что направляется поддержка</h2>
+        <ul class="donation-uses">
+          <li>Бухгалтерское и организационное обеспечение работы федерации.</li>
+          <li>Содержание и ремонт фехтовального оборудования.</li>
+          <li>Приобретение необходимых расходных материалов.</li>
+        </ul>
+      </section>
+      <section class="resource-card" id="payment-qr" aria-labelledby="qr-title">
+        <h2 id="qr-title">Перевод по QR-коду</h2>
+        <div class="donation-qr-layout">
+          <div>
+            <img class="payment-qr" src="/support/payment-qr.png" width="540" height="540" alt="QR-код с банковскими реквизитами ФФТО">
+            <a class="start-link" href="/support/payment-qr.png" download="ffto-payment-qr.png">Скачать QR-код</a>
+          </div>
+          <div>
+            <div id="payment-purpose-copy">
+              <div class="payment-purpose-row">
+                <p id="qr-payment-purpose">Назначение платежа: <strong id="payment-purpose-value">Взнос</strong></p>
+                <button class="copy-button" type="button" id="copy-payment-purpose" hidden>Скопировать назначение</button>
+              </div>
+              <p class="copy-status" id="purpose-copy-status" role="status"></p>
+              <div class="copy-manual" hidden>
+                <label for="purpose-copy-text">Скопируйте назначение вручную</label>
+                <textarea id="purpose-copy-text" rows="1" readonly></textarea>
+              </div>
+            </div>
+            <ul class="donation-instructions">
+              <li><strong>На компьютере.</strong> Откройте сканер в приложении банка на телефоне и наведите камеру на код.</li>
+              <li><strong>На смартфоне:</strong> скачайте QR-код или сделайте скриншот экрана. Откройте банковское приложение, выберите оплату по QR-коду и загрузите изображение из галереи, если банк поддерживает эту функцию.</li>
+            </ul>
+            <p>Введите выбранную сумму и назначение в приложении банка. Перед подтверждением сверьте получателя и счёт.</p>
+          </div>
+        </div>
+      </section>
+      <details class="resource-card donation-bank" id="bank-details">
+        <summary>Банковские реквизиты</summary>
+        <div class="donation-bank-content">
+          <p>Для ручного перевода выберите перевод организации по реквизитам в приложении банка или интернет-банке. Сумму введите вручную, а назначение возьмите из блока с QR-кодом.</p>
+          <dl class="bank-details">
+            <div><dt>Получатель</dt><dd><span data-bank-value>РЕГИОНАЛЬНАЯ СПОРТИВНАЯ ОБЩЕСТВЕННАЯ ОРГАНИЗАЦИЯ «ФЕДЕРАЦИЯ ФЕХТОВАНИЯ ТОМСКОЙ ОБЛАСТИ»</span><button class="copy-button" type="button" aria-label="Скопировать получателя" hidden>Копировать</button></dd></div>
+            <div><dt>Краткое наименование</dt><dd><span data-bank-value>ФФТО</span><button class="copy-button" type="button" aria-label="Скопировать краткое наименование" hidden>Копировать</button></dd></div>
+            <div><dt>ИНН</dt><dd><span data-bank-value>7017211965</span><button class="copy-button" type="button" aria-label="Скопировать ИНН" hidden>Копировать</button></dd></div>
+            <div><dt>КПП</dt><dd><span data-bank-value>701701001</span><button class="copy-button" type="button" aria-label="Скопировать КПП" hidden>Копировать</button></dd></div>
+            <div><dt>Расчётный счёт</dt><dd><span data-bank-value>40703810704000001556</span><button class="copy-button" type="button" aria-label="Скопировать расчётный счёт" hidden>Копировать</button></dd></div>
+            <div><dt>Банк</dt><dd><span data-bank-value>СИБИРСКИЙ Ф-Л ПАО «Банк ПСБ», г. Новосибирск</span><button class="copy-button" type="button" aria-label="Скопировать название банка" hidden>Копировать</button></dd></div>
+            <div><dt>БИК</dt><dd><span data-bank-value>045004816</span><button class="copy-button" type="button" aria-label="Скопировать БИК" hidden>Копировать</button></dd></div>
+            <div><dt>Корреспондентский счёт</dt><dd><span data-bank-value>30101810500000000816</span><button class="copy-button" type="button" aria-label="Скопировать корреспондентский счёт" hidden>Копировать</button></dd></div>
+          </dl>
+          <button class="button button-outline" type="button" id="copy-bank-details" hidden>Скопировать все реквизиты</button>
+          <p class="copy-status" role="status" id="copy-status"></p>
+          <div class="copy-manual" id="copy-manual" hidden>
+            <label for="copy-text">Выделите и скопируйте текст вручную</label>
+            <textarea id="copy-text" rows="4" readonly></textarea>
+          </div>
+        </div>
+      </details>
+    </div>
+  </main>
+  <footer class="site-footer"><div class="wrap footer-main"><div class="footer-brand"><img src="/images/logo/ffto-emblem-tgpu-144.webp?v=3cd7a2013566" width="144" height="144" alt=""><div><b>Федерация фехтования<br>Томской области</b><p>Официальный информационный ресурс региональной спортивной общественной организации.</p></div></div><div><h3>Разделы</h3><div class="footer-links"><a href="/news/">Новости</a><a href="/calendar/">Календарь</a><a href="/results/">Результаты</a><a href="/coaches/">Тренеры</a><a href="/organizations/">Организации</a><a href="/gallery/">Галерея</a><a href="/support/">Поддержать федерацию</a></div></div><div><h3>Контакты</h3><div class="footer-contacts"><a class="footer-contact-item" href="tel:+79833410327"><img src="/images/icons/phone.svg" alt="" aria-hidden="true"><span>8 (983) 341-03-27</span></a><a class="footer-contact-item" href="mailto:fencingtomsk@mail.ru"><img src="/images/icons/mail.svg" alt="" aria-hidden="true"><span>fencingtomsk@mail.ru</span></a><span class="footer-contact-item"><img src="/images/icons/location.svg" alt="" aria-hidden="true"><span>Томск, пр. Ленина, 207</span></span></div></div></div><div class="wrap footer-bottom"><span>© 2026 Федерация фехтования Томской области</span><span>Официальный сайт</span></div></footer>
+</body>
+</html>

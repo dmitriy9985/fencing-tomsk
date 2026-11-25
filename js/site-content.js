@@ -3,6 +3,8 @@
 
   const config = window.SUPABASE_CONFIG;
   const calendar = document.querySelector("#calendar-list");
+  const detail = document.getElementById("event-detail");
+  const dialog = document.getElementById("calendar-dialog");
   const calendarPage = document.body.dataset.page === "calendar";
 
   if (!isConfigured(config) || (!calendarPage && typeof window.supabase?.createClient !== "function")) {
@@ -26,6 +28,13 @@
   if (document.querySelector("#news-list")) {
     loaders.push(loadNews().catch((error) => { showSnapshotNotice("news-list"); throw error; }));
   }
+  if (detail) {
+    const id = new URLSearchParams(location.search).get("id");
+    loadCard(id, detail).then(title => {
+      if (title) document.title = title + " · Федерация фехтования Томской области";
+    });
+  }
+  if (dialog && typeof dialog.showModal === "function") setupCalendarDialog();
   if (calendar) {
     loaders.push(loadCalendar().catch((error) => { showCalendarError(); throw error; }));
   }
@@ -69,14 +78,17 @@
     if (content.hero_image_url && content.hero_image_url.trim()) {
       const image = document.querySelector("#hero-image");
       const fallbackSource = image.getAttribute("src");
+      const fallbackSet = image.getAttribute("srcset");
       const fallbackAlt = image.alt;
       const resolvedUrl = resolveUrl(content.hero_image_url);
 
       if (resolvedUrl) {
         image.addEventListener("error", () => {
           image.src = fallbackSource;
+          if (fallbackSet) image.srcset = fallbackSet;
           image.alt = fallbackAlt;
         }, { once: true });
+        image.removeAttribute("srcset");
         image.src = resolvedUrl;
         image.alt = content.hero_image_alt || "Главное изображение Федерации фехтования Томской области";
       }
@@ -147,7 +159,7 @@
 
     const body = document.createElement("div");
     body.className = "news-featured-body";
-    appendNewsContent(body, item, !preview);
+    appendNewsContent(body, item, preview);
     article.append(body);
     return article;
   }
@@ -158,7 +170,7 @@
 
     const content = document.createElement("div");
     content.className = "news-row-content";
-    appendNewsContent(content, item, !preview);
+    appendNewsContent(content, item, preview);
 
     const arrow = createIcon("/images/icons/arrow-right.svg", "row-arrow");
 
@@ -195,7 +207,7 @@
     return article;
   }
 
-  function appendNewsContent(container, item, allowDetails) {
+  function appendNewsContent(container, item, preview) {
     const time = document.createElement("time");
     if (item.date) {
       time.dateTime = item.date;
@@ -203,14 +215,23 @@
     time.textContent = item.date_label || formatLongDate(item.date);
 
     const title = document.createElement("h3");
-    title.textContent = item.title || "Без заголовка";
+    const titleText = item.title || "Без заголовка";
+    if (preview) {
+      const link = document.createElement("a");
+      link.className = "home-news-link";
+      link.href = "/news/?id=" + encodeURIComponent(item.id);
+      link.textContent = titleText;
+      title.append(link);
+    } else {
+      title.textContent = titleText;
+    }
 
     const summaryText = (item.summary || item.content || "").trim();
     const summary = document.createElement("p");
     summary.textContent = summaryText;
     container.append(time, title, summary);
 
-    if (allowDetails && item.content && item.content.trim() && item.content.trim() !== summaryText) {
+    if (!preview && item.content && item.content.trim() && item.content.trim() !== summaryText) {
       const details = document.createElement("details");
       details.className = "news-details";
       const toggle = document.createElement("summary");
@@ -227,7 +248,7 @@
     const today = new Intl.DateTimeFormat("sv-SE", {
       timeZone: "Asia/Tomsk", year: "numeric", month: "2-digit", day: "2-digit"
     }).format(new Date());
-    const columns = "id,title,start_date,end_date,date_precision,date_month,date_year,sort_date,location,description,category_label,short_label,published,created_at";
+    const columns = "id,title,start_date,end_date,date_precision,date_month,date_year,sort_date,location,category_label,participant_groups,weapon_label,published,created_at";
     const endpoint = new URL("/rest/v1/competition_events", config.url);
     endpoint.search = new URLSearchParams({
       select: columns,
@@ -243,13 +264,211 @@
       throw new Error("Получен некорректный ответ для календаря.");
     }
 
-    const upcoming = events.filter((item) => {
+    function isUpcoming(item) {
       if (item.published !== true) return false;
       return item.date_precision === "month"
         ? `${item.date_year}-${String(item.date_month).padStart(2, "0")}` >= today.slice(0, 7)
         : (item.end_date || item.start_date) >= today;
-    });
+    }
+    const upcoming = events.filter(isUpcoming);
+    const past = document.getElementById("calendar-past");
+    if (past) {
+      const finished = events.filter(item => item.published && !isUpcoming(item)).reverse();
+      if (finished.length) {
+        renderEvents(past.querySelector(".event-list"), finished);
+        past.hidden = false;
+      }
+    }
     renderEvents(calendar, limit ? upcoming.slice(0, limit) : upcoming, "Ближайших соревнований пока нет.");
+  }
+
+  function cardMessage(target, message) {
+    const title = document.createElement(target === detail ? "h1" : "h2");
+    title.textContent = "Соревнование";
+    target.replaceChildren(title, createEmptyState(message));
+  }
+
+  async function loadCard(id, target, signal) {
+    if (!/^[1-9]\d{0,18}$/.test(id || "")) {
+      cardMessage(target, "Соревнование не найдено.");
+      return;
+    }
+    const endpoint = new URL("/rest/v1/competition_events", config.url);
+    endpoint.search = new URLSearchParams({
+      select: "id,title,start_date,end_date,date_precision,date_month,date_year,location,category_label,description,start_time,meeting_time,time_zone,organizer_contact,regulation_url,document_title,document_url,updated_at,results:competition_results(id,title,news:news(id,title))",
+      id: "eq." + id, published: "eq.true", "results.published": "eq.true",
+      "results.news.published": "eq.true", "results.order": "competition_date.desc,id.desc"
+    });
+    try {
+      const response = await fetch(endpoint, { headers: { apikey: config.anonKey }, signal });
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      const [item] = await response.json();
+      if (signal?.aborted) return;
+      if (!item) {
+        cardMessage(target, "Соревнование не найдено или снято с публикации.");
+        return;
+      }
+      const exportModule = item.date_precision === "exact"
+        ? await import("./event-calendar.mjs?v=calendar-export").catch(() => null)
+        : null;
+      if (signal?.aborted) return;
+      renderCard(item, target, exportModule);
+      return item.title;
+    } catch {
+      if (!signal?.aborted) cardMessage(target, "Не удалось загрузить соревнование. Обновите страницу позже.");
+    }
+  }
+
+  function setupCalendarDialog() {
+    const card = dialog.querySelector(".tournament-card");
+    const close = dialog.querySelector("button");
+    const permalink = dialog.querySelector("a");
+    let request;
+    let opener;
+    let activeId;
+    let dismissing = false;
+
+    function syncDialog() {
+      const id = history.state?.calendarEvent;
+      if (id === activeId) return;
+      activeId = id;
+      dismissing = false;
+      request?.abort();
+      const calendarFile = card.querySelector("a[download]");
+      if (calendarFile) URL.revokeObjectURL(calendarFile.href);
+      if (!id) {
+        if (!dialog.open) return;
+        dialog.close();
+        document.documentElement.classList.remove("calendar-dialog-open");
+        card.replaceChildren();
+        opener?.focus({ preventScroll: true });
+        return;
+      }
+      opener = document.querySelector(`a.event-detail-link[data-event-id="${CSS.escape(id)}"]`) || opener;
+      permalink.href = "/calendar/event/?id=" + encodeURIComponent(id);
+      cardMessage(card, "Загружаем соревнование…");
+      if (!dialog.open) {
+        document.documentElement.classList.add("calendar-dialog-open");
+        dialog.showModal();
+      }
+      dialog.scrollTop = 0;
+      request = new AbortController();
+      void loadCard(id, card, request.signal);
+    }
+
+    function dismiss() {
+      if (dismissing || !dialog.open) return;
+      dismissing = true;
+      history.back();
+    }
+
+    document.querySelector(".calendar-section").addEventListener("click", event => {
+      const link = event.target.closest("a.event-detail-link");
+      if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
+      event.preventDefault();
+      opener = link;
+      history.pushState({ ...history.state, calendarEvent: link.dataset.eventId }, "");
+      syncDialog();
+    });
+    close.addEventListener("click", dismiss);
+    dialog.addEventListener("cancel", event => {
+      event.preventDefault();
+      dismiss();
+    });
+    let backdropPressed = false;
+    dialog.addEventListener("pointerdown", event => { backdropPressed = event.target === dialog; });
+    dialog.addEventListener("click", event => {
+      if (backdropPressed && event.target === dialog) dismiss();
+      backdropPressed = false;
+    });
+    window.addEventListener("popstate", syncDialog);
+    syncDialog();
+  }
+
+  function renderCard(item, target, exportModule) {
+    const content = document.createDocumentFragment();
+    function element(tag, text) {
+      const node = document.createElement(tag);
+      node.textContent = text;
+      return node;
+    }
+    function section(label) {
+      const block = document.createElement("section");
+      block.append(element("h2", label));
+      content.append(block);
+      return block;
+    }
+    function link(parent, text, url) {
+      const a = element("a", text);
+      a.className = "result-action";
+      a.href = url;
+      parent.append(a);
+      return a;
+    }
+    const date = element("p", formatEventDateLabel(item));
+    date.className = "event-category";
+    content.append(date, element(target === detail ? "h1" : "h2", item.title));
+    const facts = document.createElement("dl");
+    function fact(label, value) {
+      if (value) facts.append(element("dt", label), element("dd", value));
+    }
+    fact("Где", item.location);
+    fact("Категория соревнования", item.category_label);
+    for (const [label, time] of [["Сбор", item.meeting_time], ["Первый старт", item.start_time]]) {
+      if (time) fact(label, time.slice(0, 5) + (item.time_zone === "Asia/Tomsk" ? " по Томску" : " по местному времени"));
+    }
+    fact("Связь с организатором", item.organizer_contact);
+    if (facts.childElementCount) content.append(facts);
+    if (item.description) section("О соревновании").append(element("p", item.description));
+
+    const documents = [[item.regulation_url, "Положение о соревновании"], [item.document_url, item.document_title]]
+      .filter(([url, label]) => label && url && /^https:\/\//i.test(url) && resolveUrl(url));
+    if (documents.length) {
+      const block = section("Документы");
+      documents.forEach(([url, label]) => link(block, label, url));
+    }
+    const results = item.results || [];
+    if (results.length) {
+      const block = section("Результаты и новости");
+      const news = new Map();
+      for (const result of results) {
+        link(block, "Результаты · " + result.title, "/results/#result-" + result.id);
+        if (result.news) news.set(result.news.id, result.news.title);
+      }
+      for (const [newsId, title] of news) link(block, "Новость · " + title, "/news/?id=" + newsId);
+    }
+    // A bad time zone in imported data must not hide the rest of the card.
+    try {
+      const file = exportModule?.build(item);
+      if (file) {
+        const options = document.createElement("details");
+        options.className = "event-calendar-options";
+        const toggle = element("summary", "Добавить в календарь");
+        toggle.className = "button button-red";
+        options.append(toggle);
+
+        const choices = document.createElement("div");
+        choices.className = "event-calendar-choices";
+        const appleUrl = new URL(
+          "/functions/v1/calendar-event-ics/" + encodeURIComponent(item.id) + ".ics", config.url
+        );
+        link(choices, "Apple Календарь", appleUrl.href);
+        link(choices, "Google Календарь", exportModule.googleCalendarUrl(item));
+        const downloadUrl = URL.createObjectURL(new Blob([file], { type: "text/calendar;charset=utf-8" }));
+        link(choices, "Скачать .ics", downloadUrl).download = "ffto-event-" + item.id + ".ics";
+        options.append(choices);
+        if (!item.start_time && !item.meeting_time) {
+          options.append(element("small", "На весь день. Время уточняется."));
+        }
+        options.append(element("small",
+          "На iPhone откройте ссылку Apple в Safari. Если файл скачался, откройте его из загрузок. " +
+          "Если кнопки добавления нет, откройте .ics как вложение в приложении «Почта»."));
+        content.append(options);
+      }
+    } catch (error) {
+      console.warn("Не удалось подготовить экспорт в календарь.", error);
+    }
+    target.replaceChildren(content);
   }
 
   function renderEvents(container, items, emptyMessage) {
@@ -257,6 +476,7 @@
   }
 
   function showCalendarError() {
+    if (detail) cardMessage(detail, "Карточка временно недоступна.");
     if (calendar) {
       calendar.replaceChildren(createEmptyState("Календарь временно недоступен. Попробуйте обновить страницу позже."));
     }
@@ -315,33 +535,53 @@
     category.className = "event-category";
     category.textContent = item.category_label || "Соревнование";
     const title = document.createElement("h3");
-    title.textContent = item.title || "Без названия";
-    const meta = document.createElement("div");
-    meta.className = "event-meta";
-    if (item.location) {
+    const link = document.createElement("a");
+    link.href = "/calendar/event/?id=" + encodeURIComponent(item.id);
+    link.className = "event-detail-link";
+    link.dataset.eventId = String(item.id);
+    link.textContent = item.title || "Без названия";
+    title.append(link);
+    main.append(category, title);
+    const place = item.location?.split(",", 1)[0].trim() || item.location?.trim();
+    if (place) {
+      const meta = document.createElement("div");
+      meta.className = "event-meta";
       const location = document.createElement("span");
       location.className = "event-location";
-      location.textContent = item.location;
+      location.textContent = place;
       meta.append(location);
+      main.append(meta);
     }
-    if (item.description) {
-      const description = document.createElement("span");
-      description.className = "event-description";
-      description.textContent = item.description;
-      meta.append(description);
-    }
-    main.append(category, title, meta);
 
-    const code = document.createElement("div");
-    code.className = "event-code";
-    if (item.short_label) {
-      code.textContent = item.short_label;
-      if (item.short_label.length > 8) {
-        code.classList.add("event-code-wide");
+    const participants = document.createElement("ul");
+    participants.className = "event-participants";
+    participants.setAttribute("role", "list");
+    participants.setAttribute("aria-label", "Участники и оружие");
+    const groups = Array.isArray(item.participant_groups) ? item.participant_groups : [];
+    function addBadge(parts) {
+      if (!parts.length) return;
+      const badge = document.createElement("li");
+      for (const [index, text] of parts.entries()) {
+        if (index) badge.append(" · ");
+        const part = document.createElement("span");
+        part.textContent = text;
+        badge.append(part);
       }
-    } else {
-      code.append(createIcon("/images/icons/arrow-right.svg", "event-arrow"));
+      participants.append(badge);
     }
+    for (const group of groups) {
+      const label = typeof group?.label === "string" ? group.label.trim() : "";
+      const years = typeof group?.birth_years === "string" ? group.birth_years.trim() : "";
+      const birthLabel = years && years.replace(/(?= и (?:младше|старше)$)|$/, " г.р.");
+      addBadge([label, birthLabel].filter(Boolean));
+    }
+    if (item.weapon_label?.trim()) addBadge([item.weapon_label.trim()]);
+    if (participants.childElementCount) main.append(participants);
+
+    const code = document.createElement("span");
+    code.className = "event-code event-code-wide";
+    code.textContent = "Подробнее";
+    code.setAttribute("aria-hidden", "true");
     article.append(date, main, code);
     return article;
   }
@@ -452,7 +692,7 @@
 
     const heading = document.createElement("div");
     heading.className = "gallery-album-heading";
-    const title = document.createElement("h3");
+    const title = document.createElement("h2");
     title.textContent = album.title || "Фотоальбом";
     heading.append(title);
 
@@ -470,29 +710,37 @@
 
     const grid = document.createElement("div");
     grid.className = "gallery-grid";
-    photos.forEach((photo, index) => grid.append(createPhoto(photo, album.title, index === 0)));
+    photos.forEach((photo) => grid.append(createPhoto(photo, album.title)));
     section.append(grid);
     return section;
   }
 
-  function createPhoto(photo, albumTitle, featured) {
+  function createPhoto(photo, albumTitle) {
     const figure = document.createElement("figure");
-    figure.className = featured ? "gallery-photo gallery-featured" : "gallery-photo";
+    figure.className = "gallery-photo";
 
     const imageUrl = resolveUrl(photo.image_url);
+    const frame = document.createElement(imageUrl ? "a" : "div");
+    frame.className = "gallery-photo-frame";
     const image = document.createElement("img");
     image.alt = photo.alt_text || photo.caption || albumTitle || "Фотография из галереи";
     image.loading = "lazy";
+    image.decoding = "async";
     if (imageUrl) {
+      frame.href = imageUrl;
+      image.addEventListener("error", () => {
+        frame.classList.add("image-error");
+        frame.removeAttribute("href");
+      }, { once: true });
       image.src = imageUrl;
-      image.addEventListener("error", () => figure.classList.add("image-error"), { once: true });
     } else {
-      figure.classList.add("image-error");
+      frame.classList.add("image-error");
     }
 
     const caption = document.createElement("figcaption");
     caption.textContent = photo.caption || photo.alt_text || albumTitle || "";
-    figure.append(image, caption);
+    frame.append(image);
+    figure.append(frame, caption);
     return figure;
   }
 

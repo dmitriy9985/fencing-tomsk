@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Бесплатные занятия фехтованием на шпагах в Томске. Как записаться, где проходят тренировки и что взять на первое занятие.">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://mc.yandex.ru; style-src 'self'; img-src 'self' https://mc.yandex.ru; object-src 'none'; base-uri 'self'; form-action 'self'; connect-src 'self' https://mc.yandex.ru">
   <title>Начать заниматься · Федерация фехтования Томской области</title>
   <link rel="icon" type="image/png" sizes="16x16" href="/images/logo/logoffto-16.png"><link rel="icon" type="image/png" sizes="32x32" href="/images/logo/logoffto.png?v=3.1">
-  <link rel="stylesheet" href="/styles.css">
-  <script defer src="/js/site.js"></script><script defer src="/js/analytics.js"></script>
+  <link rel="stylesheet" href="/styles.css?analytics=v4">
+  <script defer src="/js/site.js"></script><script defer src="/js/analytics.js?v=consent-v4"></script>
 </head>
 <body data-page="start">
   <a class="skip-link" href="#main-content">Перейти к содержанию</a>
@@ -25,8 +25,8 @@
           <h1><span>Бесплатные занятия</span> фехтованием в Томске</h1>
           <p>Бесплатные занятия на шпагах проходят в УСЦ им. В. А. Шевелёва в зале «Акватика» на Ленина. При обращении поможем подобрать группу и время.</p>
           <div class="hero-actions">
-            <a class="button button-red" href="#enrollment">Контакты для записи</a>
-            <a class="button button-ghost" href="/training/">Расписание на Ленина</a>
+            <a class="button button-red" href="#enrollment" data-analytics-goal="enrollment_interest">Контакты для записи</a>
+            <a class="button button-ghost" href="/training/" data-analytics-goal="training_schedule_open">Расписание на Ленина</a>
           </div>
         </div>
         <a class="start-venue-short" href="/organizations/#aquatika">

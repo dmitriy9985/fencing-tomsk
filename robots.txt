@@ -1,0 +1,4 @@
+User-agent: *
+Disallow:
+
+Sitemap: https://fencing-tomsk.ru/sitemap.xml

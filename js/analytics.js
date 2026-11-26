@@ -4,7 +4,7 @@
   const counterId = 114258187;
   const analyticsEnabled = true;
   const preferenceKey = "ffto-analytics-v4";
-  const messengerSources = new Set(["telegram", "whatsapp", "viber", "skype", "wechat"]);
+  const messengerSources = new Set(["telegram", "whatsapp", "viber", "skype", "wechat", "max"]);
   const siteOrigin = "https://fencing-tomsk.ru";
   const publicPages = new Set([
     "/", "/start/", "/training/", "/news/", "/calendar/", "/results/",

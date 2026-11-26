@@ -9,6 +9,7 @@ const output = "calendar-browser-artifacts";
 await mkdir(output, { recursive: true });
 
 const endpoint = "http://127.0.0.1:54853";
+const fixtureProjectHost = "niyxpscxjqundylwzycv.supabase.co";
 const user = {
   id: "00000000-0000-4000-8000-000000000001",
   email: "fixture@example.invalid",
@@ -54,19 +55,20 @@ async function run() {
         await ctx.route("**/js/supabase-config.js*", (r) =>
           r.fulfill({
             contentType: "application/javascript",
-            body: 'window.SUPABASE_CONFIG={url:"https://ffto-test.supabase.co",anonKey:"sb_publishable_fixture_atomic_12345"}',
+            body: `window.SUPABASE_CONFIG={url:"https://${fixtureProjectHost}",anonKey:"sb_publishable_fixture_atomic_12345"}`,
           }),
         );
         await ctx.route("https://cdn.jsdelivr.net/**", (r) =>
           r.fulfill({
             path: "node_modules/@supabase/supabase-js/dist/umd/supabase.js",
             contentType: "application/javascript",
+            headers: { "access-control-allow-origin": "*" },
           }),
         );
         await ctx.route("https://*.supabase.co/**", async (r) => {
           const request = r.request(),
             url = new URL(request.url());
-          assert.equal(url.hostname, "ffto-test.supabase.co");
+          assert.equal(url.hostname, fixtureProjectHost);
           if (url.pathname === "/auth/v1/token")
             return r.fulfill({
               json: {
